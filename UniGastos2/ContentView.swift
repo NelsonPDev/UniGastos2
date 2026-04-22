@@ -163,11 +163,14 @@ struct IngresosView: View {
                 if ingresos.isEmpty {
                     Text("Sin datos de ingresos").foregroundColor(.white.opacity(0.5)).frame(height: 200)
                 } else {
+                    // AQUÍ ESTÁ LA GRÁFICA COPIADA DE GASTOS
                     Chart(ingresos) { item in
-                        BarMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
-                            .foregroundStyle(Color.blue.gradient)
+                        LineMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
+                            .interpolationMethod(.catmullRom).foregroundStyle(.blue).lineStyle(StrokeStyle(lineWidth: 4))
+                        PointMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
+                            .foregroundStyle(.white).symbolSize(100)
                     }
-                    .chartYAxis { AxisMarks { AxisValueLabel().foregroundStyle(.white) } }
+                    .chartYAxis { AxisMarks(values: .automatic) { value in AxisGridLine().foregroundStyle(.white.opacity(0.1)); AxisValueLabel().foregroundStyle(.white) } }
                     .chartXAxis { AxisMarks { AxisValueLabel().foregroundStyle(.white) } }
                     .frame(height: 200).padding()
                 }
@@ -183,7 +186,7 @@ struct IngresosView: View {
     }
 }
 
-// MARK: - FORMULARIO ESTILO ORIGINAL
+// MARK: - FORMULARIO ESTILO ORIGINAL (RESTAURADO)
 struct FormularioPro: View {
     let titulo: String; let esGasto: Bool
     var alGuardar: (String, Double) -> Void
@@ -229,6 +232,7 @@ struct MainLayout<Content: View>: View {
             LinearGradient(gradient: Gradient(colors: [Color(red: 28/255, green: 19/255, blue: 63/255), Color(red: 101/255, green: 144/255, blue: 157/255)]), startPoint: .top, endPoint: .bottom).ignoresSafeArea()
             VStack(spacing: 0) {
                 HStack {
+                    // RESTAURADO: Texto + Espaciador + Logo original
                     Text("Hola, \(nombre)").font(.title2).bold().foregroundColor(.white)
                     Spacer()
                     Image("icono").resizable().scaledToFit().frame(width: 40, height: 40)
@@ -317,3 +321,4 @@ func filtrarPorTiempo(fecha: Date, periodo: String) -> Bool {
 }
 
 #Preview { ContentView() }
+
