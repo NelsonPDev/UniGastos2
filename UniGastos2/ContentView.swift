@@ -28,38 +28,71 @@ struct ContentView: View {
             ZStack {
                 LinearGradient(gradient: Gradient(colors: [Color(red: 28/255, green: 19/255, blue: 63/255), Color(red: 101/255, green: 144/255, blue: 157/255)]), startPoint: .top, endPoint: .bottom).ignoresSafeArea()
                 
-                VStack(spacing: 20) {
-                    Spacer().frame(height: 40)
-                    Image("icono").resizable().scaledToFit().frame(width: 180, height: 180)
-                    Text("UniGastos").font(.system(size: 32, weight: .bold)).foregroundColor(.white)
+                VStack(spacing: 25) {
                     
-                    VStack(spacing: 15) {
-                        Text("Registro").font(.system(size: 26, weight: .medium)).foregroundColor(.white)
+                    Spacer().frame(height: 30)
+                    
+                    // LOGO
+                    Image("icono")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 180, height: 180)
+                    
+                    // TÍTULO
+                    Text("UniGastos")
+                        .font(.system(size: 42, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Spacer().frame(height: 20)
+                    
+                    // TARJETA LOGIN
+                    VStack(spacing: 20) {
                         
-                        TextField("Usuario", text: $usuario)
+                        Text("Registro")
+                            .font(.system(size: 38, weight: .medium))
+                            .foregroundColor(.white)
+                        
+                        Text("Usuario")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                        
+                        // TEXTFIELD
+                        TextField("", text: $usuario)
                             .padding()
+                            .frame(height: 65)
+                            .foregroundStyle(Color.black)
                             .background(Color.white.opacity(0.95))
-                            .cornerRadius(25)
+                            .cornerRadius(35)
                             .padding(.horizontal, 10)
+                            .font(.system(size: 22))
                         
-                        // BOTÓN CORREGIDO
+                        // BOTÓN
                         Button(action: {
                             if !usuario.isEmpty {
                                 SQLiteManager.shared.guardarUsuario(nombre: usuario)
                                 irHome = true
                             }
                         }) {
-                            Text("Entrar")
-                                .foregroundColor(.white)
-                                .padding()
+                            Text("Crea Cuenta")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(Color.white.opacity(0.7))
                                 .frame(maxWidth: .infinity)
-                                .background(Color.blue)
-                                .cornerRadius(25)
+                                .padding(.vertical, 10)
                         }
                     }
-                    .padding()
-                    .background(Color(red: 40/255, green: 45/255, blue: 85/255))
-                    .cornerRadius(25)
+                    .padding(.vertical, 35)
+                    .padding(.horizontal, 25)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 40/255, green: 42/255, blue: 92/255),
+                                Color(red: 58/255, green: 65/255, blue: 120/255)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .cornerRadius(35)
                     .padding(.horizontal, 30)
                     
                     Spacer()
@@ -85,6 +118,19 @@ struct HomeView: View {
     @Binding var gastos: [Gasto]
     @State private var filtroSeleccionado = "Mes"
     
+    var safeProgress: Double {
+        let value = abs(balance)
+        
+        if !value.isFinite {
+            return 0.01
+        }
+        
+        // normaliza entre 0 y 1
+        let normalized = min(value / 1000, 1.0)
+        
+        return max(0.01, normalized)
+    }
+    
     var ingresosFiltrados: [Ingreso] {
         ingresos.filter { filtrarPorTiempo(fecha: $0.fecha, periodo: filtroSeleccionado) }
     }
@@ -105,31 +151,112 @@ struct HomeView: View {
     }
     
     var body: some View {
-        MainLayout(nombre: nombre, vistaActiva: "Resumen", ingresos: $ingresos, gastos: $gastos) {
-            BalanceCard(monto: String(format: "%.0f", balance))
+        MainLayout(nombre: nombre, ingresos: $ingresos, gastos: $gastos) {
             
-            ZStack {
-                RoundedRectangle(cornerRadius: 25).fill(Color.black.opacity(0.3)).frame(height: 250)
-                VStack {
-                    Circle()
-                        .trim(from: 0, to: max(0.01, min(0.7, abs(balance))))
-                        .stroke(Color.blue, style: StrokeStyle(lineWidth: 25, lineCap: .round))
-                        .frame(width: 150, height: 150).rotationEffect(.degrees(-90))
-                    Text("Resumen \(filtroSeleccionado)").foregroundColor(.white).font(.headline).padding(.top)
+            // TARJETA BALANCE
+            VStack {
+                Text("Balance:")
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text("$\(String(format: "%.0f", balance))")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            .padding(.vertical, 20)
+            .padding(.horizontal, 35)
+            .background(
+                Color(red: 31/255, green: 18/255, blue: 84/255)
+            )
+            .cornerRadius(35)
+            .padding(.top, 10)
+            
+            Spacer().frame(height: 20)
+            
+            // GRÁFICA
+            VStack {
+                
+                let totalIngresos = ingresosFiltrados.reduce(0) { $0 + $1.cantidad }
+                let totalGastos = gastosFiltrados.reduce(0) { $0 + $1.cantidad }
+                let total = totalIngresos + totalGastos
+                
+                if total > 0 {
+                    
+                    Chart {
+                        SectorMark(
+                            angle: .value("Cantidad", totalIngresos),
+                            innerRadius: .ratio(0.0),
+                            angularInset: 1
+                        )
+                        .foregroundStyle(Color.blue)
+                        
+                        SectorMark(
+                            angle: .value("Cantidad", totalGastos),
+                            innerRadius: .ratio(0.0),
+                            angularInset: 1
+                        )
+                        .foregroundStyle(Color.purple.opacity(0.7))
+                    }
+                    .frame(height: 320)
+                    .padding()
+                    
+                    VStack(spacing: 8) {
+                        
+                        Text("Ingreso \(String(format: "%.1f", (totalIngresos / total) * 100))%")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                        
+                        Text("Gastos \(String(format: "%.1f", (totalGastos / total) * 100))%")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                    .padding(.bottom)
                 }
-            }.padding(.horizontal)
+                else {
+                    Text("Sin datos")
+                        .foregroundColor(.white.opacity(0.6))
+                        .frame(height: 320)
+                }
+            }
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 52/255, green: 57/255, blue: 110/255),
+                        Color(red: 82/255, green: 101/255, blue: 128/255)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .cornerRadius(35)
+            .padding(.horizontal, 20)
             
-            HStack(spacing: 15) {
-                FilterButton(text: "Día", activo: filtroSeleccionado == "Día") { filtroSeleccionado = "Día" }
-                FilterButton(text: "Semana", activo: filtroSeleccionado == "Semana") { filtroSeleccionado = "Semana" }
-                FilterButton(text: "Mes", activo: filtroSeleccionado == "Mes") { filtroSeleccionado = "Mes" }
-            }.padding()
-
-            VStack(alignment: .leading) {
-                Text("HISTORIAL RECIENTE").font(.caption).bold().foregroundColor(.white.opacity(0.6)).padding(.leading)
-                ForEach(gastosFiltrados.suffix(3)) { g in HistorialRow(titulo: g.concepto, monto: -g.cantidad, fecha: g.fecha) }
-                ForEach(ingresosFiltrados.suffix(3)) { i in HistorialRow(titulo: "Ingreso", monto: i.cantidad, fecha: i.fecha) }
-            }.padding(.horizontal)
+            // BOTONES FILTRO
+            HStack(spacing: 0) {
+                
+                FilterButton(
+                    text: "Dia",
+                    activo: filtroSeleccionado == "Día"
+                ) {
+                    filtroSeleccionado = "Día"
+                }
+                
+                FilterButton(
+                    text: "Semana",
+                    activo: filtroSeleccionado == "Semana"
+                ) {
+                    filtroSeleccionado = "Semana"
+                }
+                
+                FilterButton(
+                    text: "Mes",
+                    activo: filtroSeleccionado == "Mes"
+                ) {
+                    filtroSeleccionado = "Mes"
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 15)
         }
     }
 }
@@ -142,37 +269,88 @@ struct GastosView: View {
     @State private var mostrarForm = false
     
     var body: some View {
-        MainLayout(nombre: nombre, vistaActiva: "Gastos", ingresos: $ingresos, gastos: $gastos) {
-            BalanceCard(monto: String(format: "%.0f", gastos.reduce(0){$0 + $1.cantidad}))
+        
+        VStack {
+            
+            BalanceCard(
+                monto: String(format: "%.0f",
+                              gastos.reduce(0){$0 + $1.cantidad})
+            )
             
             VStack {
+                
                 if gastos.isEmpty {
-                    Text("Sin datos de gastos").foregroundColor(.white.opacity(0.5)).frame(height: 200)
+                    
+                    Text("Sin datos de gastos")
+                        .foregroundColor(.white.opacity(0.5))
+                        .frame(height: 200)
+                    
                 } else {
-                    Chart(gastos) { item in
-                        LineMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
-                        PointMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
+                    
+                    let datos = gastos.filter {
+                        $0.cantidad.isFinite && !$0.cantidad.isNaN
                     }
-                    .frame(height: 200).padding()
+                    
+                    Chart(datos) { item in
+                        
+                        LineMark(
+                            x: .value("Fecha", item.fecha),
+                            y: .value("Monto", item.cantidad)
+                        )
+                        
+                        PointMark(
+                            x: .value("Fecha", item.fecha),
+                            y: .value("Monto", item.cantidad)
+                        )
+                    }
+                    .frame(height: 200)
+                    .padding()
                 }
-            }.background(Color.black.opacity(0.3)).cornerRadius(25).padding(.horizontal)
+            }
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(25)
+            .padding(.horizontal)
             
             VStack {
+                
                 ForEach(gastos.reversed()) { g in
-                    HistorialRow(titulo: g.concepto, monto: -g.cantidad, fecha: g.fecha)
+                    
+                    HistorialRow(
+                        titulo: g.concepto,
+                        monto: -g.cantidad,
+                        fecha: g.fecha
+                    )
                 }
-            }.padding(.horizontal)
+            }
+            .padding(.horizontal)
             
-            Button(action: { mostrarForm = true }) {
+            Button(action: {
+                mostrarForm = true
+            }) {
+                
                 AddButton(titulo: "Gasto")
             }
         }
-        // SHEET MODIFICADO
         .sheet(isPresented: $mostrarForm) {
-            FormularioPro(titulo: "Nuevo Gasto", esGasto: true) { c, m in
-                let nuevo = Gasto(fecha: Date(), concepto: c, cantidad: m)
+            
+            FormularioPro(
+                titulo: "Nuevo Gasto",
+                esGasto: true
+            ) { c, m in
+                
+                let nuevo = Gasto(
+                    fecha: Date(),
+                    concepto: c,
+                    cantidad: m
+                )
+                
                 gastos.append(nuevo)
-                SQLiteManager.shared.insertarGasto(concepto: c, cantidad: m, fecha: Date())
+                
+                SQLiteManager.shared.insertarGasto(
+                    concepto: c,
+                    cantidad: m,
+                    fecha: Date()
+                )
             }
         }
     }
@@ -200,7 +378,7 @@ struct FormularioPro: View {
                 .textFieldStyle(.roundedBorder)
             
             Button("Guardar") {
-                if let m = Double(monto), !concepto.isEmpty {
+                if let m = Double(monto), m.isFinite, m > 0, !concepto.isEmpty {
                     alGuardar(concepto, m)
                     dismiss()
                 }
@@ -213,49 +391,168 @@ struct FormularioPro: View {
 // MARK: - COMPONENTES
 struct MainLayout<Content: View>: View {
     let nombre: String
-    let vistaActiva: String
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
-    let content: Content
+    @State private var vistaActiva: String = "Resumen"
     
-    init(nombre: String, vistaActiva: String, ingresos: Binding<[Ingreso]>, gastos: Binding<[Gasto]>, @ViewBuilder content: () -> Content) {
+    let content: () -> Content
+    
+    init(
+        nombre: String,
+        ingresos: Binding<[Ingreso]>,
+        gastos: Binding<[Gasto]>,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
         self.nombre = nombre
-        self.vistaActiva = vistaActiva
         self._ingresos = ingresos
         self._gastos = gastos
-        self.content = content()
+        self.content = content
     }
     
     var body: some View {
-        VStack {
-            // HEADER
-            Text("Hola, \(nombre)")
-                .font(.title)
+        
+        ZStack {
             
-            // NAVBAR
-            HStack {
-                NavigationLink("Ingresos") {
-                    IngresosView(nombre: nombre, ingresos: $ingresos, gastos: $gastos)
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 28/255, green: 19/255, blue: 63/255),
+                    Color(red: 120/255, green: 170/255, blue: 185/255)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                
+                // HEADER
+                HStack {
+                    
+                    Text("Hola, \(nombre)")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Image("icono")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 70, height: 70)
+                        .foregroundColor(Color.orange)
                 }
+                .padding(.horizontal, 22)
+                .padding(.top, 20)
+                .padding(.bottom, 18)
+                .background(
+                    Color(red: 30/255, green: 15/255, blue: 72/255)
+                )
                 
-                Spacer()
-                
-                NavigationLink("Resumen") {
-                    HomeView(nombre: nombre, ingresos: $ingresos, gastos: $gastos)
+                // TABS
+                HStack {
+                    
+                    Button(action: {
+                        vistaActiva = "Ingresos"
+                    }) {
+                        
+                        VStack(spacing: 6) {
+                            
+                            Text("Ingresos")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white.opacity(
+                                    vistaActiva == "Ingresos" ? 1 : 0.7
+                                ))
+                            
+                            Rectangle()
+                                .fill(vistaActiva == "Ingresos"
+                                      ? Color.white
+                                      : Color.clear)
+                                .frame(height: 3)
+                                .cornerRadius(5)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        vistaActiva = "Resumen"
+                    }) {
+                        
+                        VStack(spacing: 6) {
+                            
+                            Text("Resumen")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white.opacity(
+                                    vistaActiva == "Resumen" ? 1 : 0.7
+                                ))
+                            
+                            Rectangle()
+                                .fill(vistaActiva == "Resumen"
+                                      ? Color.white
+                                      : Color.clear)
+                                .frame(width: 95, height: 3)
+                                .cornerRadius(5)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        vistaActiva = "Gastos"
+                    }) {
+                        
+                        VStack(spacing: 6) {
+                            
+                            Text("Gastos")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white.opacity(
+                                    vistaActiva == "Gastos" ? 1 : 0.7
+                                ))
+                            
+                            Rectangle()
+                                .fill(vistaActiva == "Gastos"
+                                      ? Color.white
+                                      : Color.clear)
+                                .frame(height: 3)
+                                .cornerRadius(5)
+                        }
+                    }
                 }
+                .padding(.horizontal, 30)
+                .padding(.vertical, 12)
+                .background(
+                    Color(red: 34/255, green: 24/255, blue: 82/255)
+                )
                 
-                Spacer()
-                
-                NavigationLink("Gastos") {
-                    GastosView(nombre: nombre, ingresos: $ingresos, gastos: $gastos)
+                ScrollView(showsIndicators: false) {
+                    
+                    VStack {
+                        
+                        switch vistaActiva {
+                            
+                        case "Ingresos":
+                            
+                            IngresosView(
+                                nombre: nombre,
+                                ingresos: $ingresos,
+                                gastos: $gastos
+                            )
+                            
+                        case "Gastos":
+                            
+                            GastosView(
+                                nombre: nombre,
+                                ingresos: $ingresos,
+                                gastos: $gastos
+                            )
+                            
+                        default:
+                            
+                            content()
+                        }
+                    }
+                    .padding(.bottom, 20)
                 }
             }
-            .padding()
-            
-            Divider()
-            
-            // CONTENIDO
-            content
         }
     }
 }
@@ -331,37 +628,86 @@ struct IngresosView: View {
     @State private var mostrarForm = false
     
     var body: some View {
-        MainLayout(nombre: nombre, vistaActiva: "Ingresos", ingresos: $ingresos, gastos: $gastos) {
-            BalanceCard(monto: String(format: "%.0f", ingresos.reduce(0){$0 + $1.cantidad}))
+        
+        VStack {
+            
+            BalanceCard(
+                monto: String(format: "%.0f",
+                              ingresos.reduce(0){$0 + $1.cantidad})
+            )
             
             VStack {
+                
                 if ingresos.isEmpty {
-                    Text("Sin datos de ingresos").foregroundColor(.white.opacity(0.5)).frame(height: 200)
+                    
+                    Text("Sin datos de ingresos")
+                        .foregroundColor(.white.opacity(0.5))
+                        .frame(height: 200)
+                    
                 } else {
-                    Chart(ingresos) { item in
-                        LineMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
-                        PointMark(x: .value("Fecha", item.fecha), y: .value("Monto", item.cantidad))
+                    
+                    let datos = ingresos.filter {
+                        $0.cantidad.isFinite && !$0.cantidad.isNaN
                     }
-                    .frame(height: 200).padding()
+                    
+                    Chart(datos) { item in
+                        
+                        LineMark(
+                            x: .value("Fecha", item.fecha),
+                            y: .value("Monto", item.cantidad)
+                        )
+                        
+                        PointMark(
+                            x: .value("Fecha", item.fecha),
+                            y: .value("Monto", item.cantidad)
+                        )
+                    }
+                    .frame(height: 200)
+                    .padding()
                 }
-            }.background(Color.black.opacity(0.3)).cornerRadius(25).padding(.horizontal)
+            }
+            .background(Color.black.opacity(0.3))
+            .cornerRadius(25)
+            .padding(.horizontal)
             
             VStack {
+                
                 ForEach(ingresos.reversed()) { i in
-                    HistorialRow(titulo: "Ingreso", monto: i.cantidad, fecha: i.fecha)
+                    
+                    HistorialRow(
+                        titulo: "Ingreso",
+                        monto: i.cantidad,
+                        fecha: i.fecha
+                    )
                 }
-            }.padding(.horizontal)
+            }
+            .padding(.horizontal)
             
-            Button(action: { mostrarForm = true }) {
+            Button(action: {
+                mostrarForm = true
+            }) {
+                
                 AddButton(titulo: "Ingreso")
             }
         }
-        // SHEET MODIFICADO
         .sheet(isPresented: $mostrarForm) {
-            FormularioPro(titulo: "Nuevo Ingreso", esGasto: false) { _, m in
-                let nuevo = Ingreso(fecha: Date(), cantidad: m)
+            
+            FormularioPro(
+                titulo: "Nuevo Ingreso",
+                esGasto: false
+            ) { _, m in
+                
+                let nuevo = Ingreso(
+                    fecha: Date(),
+                    cantidad: m
+                )
+                
                 ingresos.append(nuevo)
-                SQLiteManager.shared.insertarIngreso(cantidad: m, fecha: Date())
+                
+                SQLiteManager.shared.insertarIngreso(
+                    cantidad: m,
+                    fecha: Date()
+                )
             }
         }
     }
