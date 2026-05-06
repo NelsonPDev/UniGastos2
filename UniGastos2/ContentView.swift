@@ -351,14 +351,6 @@ struct GastosView: View {
                         }
                     }
                     
-                    .sheet(item: $gastoEditar) { gasto in
-
-                        EditarGastoView(gasto: gasto) {
-
-                            gastos = SQLiteManager.shared.obtenerGastos()
-                        }
-                    }
-                    
                 }
             }
             .scrollContentBackground(.hidden)
@@ -804,52 +796,94 @@ struct IngresosView: View {
 }
 
 struct EditarGastoView: View {
-    
+
     var gasto: Gasto
     var alActualizar: () -> Void
-    
+
     @Environment(\.dismiss) var dismiss
-    
+
     @State private var concepto: String = ""
     @State private var cantidad: String = ""
-    
+
     var body: some View {
-        
-        VStack(spacing: 20) {
-            
-            Text("Editar Gasto")
-                .font(.title)
-                .bold()
-            
-            TextField("Concepto", text: $concepto)
-                .textFieldStyle(.roundedBorder)
-            
-            TextField("Cantidad", text: $cantidad)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
-            
-            Button("Actualizar") {
-                
-                if let monto = Double(cantidad) {
-                    
-                    SQLiteManager.shared.actualizarGasto(
-                        id: gasto.id,
-                        concepto: concepto,
-                        cantidad: monto
-                    )
-                    
-                    alActualizar()
-                    dismiss()
+
+        NavigationStack {
+
+            ZStack {
+
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 28/255, green: 19/255, blue: 63/255),
+                        Color(red: 120/255, green: 170/255, blue: 185/255)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 25) {
+
+                    Text("Editar Gasto")
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundColor(.white)
+
+                    TextField("Concepto", text: $concepto)
+                        .foregroundStyle(.black)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(15)
+                        .padding(.horizontal)
+
+                    TextField("Cantidad", text: $cantidad)
+                        .foregroundStyle(.black)
+                        .keyboardType(.decimalPad)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(15)
+                        .padding(.horizontal)
+
+                    Button {
+
+                        if let monto = Double(cantidad) {
+
+                            SQLiteManager.shared.actualizarGasto(
+                                id: gasto.id,
+                                concepto: concepto,
+                                cantidad: monto
+                            )
+
+                            alActualizar()
+
+                            dismiss()
+                        }
+
+                    } label: {
+
+                        Text("Actualizar")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(15)
+                            .padding(.horizontal)
+                    }
+
+                    Button {
+
+                        dismiss()
+
+                    } label: {
+
+                        Text("Cancelar")
+                            .foregroundColor(.white.opacity(0.8))
+                    }
                 }
             }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(12)
         }
-        .padding()
         .onAppear {
-            
+
             concepto = gasto.concepto
             cantidad = String(gasto.cantidad)
         }
