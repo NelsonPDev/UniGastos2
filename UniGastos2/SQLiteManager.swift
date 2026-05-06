@@ -111,21 +111,72 @@ class SQLiteManager {
     }
 
     func obtenerGastos() -> [Gasto] {
+
         var lista: [Gasto] = []
-        let query = "SELECT concepto, cantidad, fecha FROM gastos;"
+
+        let query = "SELECT id, concepto, cantidad, fecha FROM gastos;"
+
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
-            while sqlite3_step(stmt) == SQLITE_ROW {
-                let concepto = String(cString: sqlite3_column_text(stmt, 0))
-                let cantidad = sqlite3_column_double(stmt, 1)
-                let fecha = Date(timeIntervalSince1970: sqlite3_column_double(stmt, 2))
 
-                lista.append(Gasto(fecha: fecha, concepto: concepto, cantidad: cantidad))
+            while sqlite3_step(stmt) == SQLITE_ROW {
+
+                let id = Int(sqlite3_column_int(stmt, 0))
+
+                let concepto = String(
+                    cString: sqlite3_column_text(stmt, 1)
+                )
+
+                let cantidad = sqlite3_column_double(stmt, 2)
+
+                let fecha = Date(
+                    timeIntervalSince1970:
+                        sqlite3_column_double(stmt, 3)
+                )
+
+                lista.append(
+                    Gasto(
+                        id: id,
+                        fecha: fecha,
+                        concepto: concepto,
+                        cantidad: cantidad
+                    )
+                )
             }
         }
+
         sqlite3_finalize(stmt)
+
         return lista
+    }
+    
+    func eliminarGasto(id: Int) {
+        let query = "DELETE FROM gastos WHERE id = ?;"
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+            sqlite3_bind_int(stmt, 1, Int32(id))
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+
+    func actualizarGasto(id: Int, concepto: String, cantidad: Double) {
+        let query = "UPDATE gastos SET concepto = ?, cantidad = ? WHERE id = ?;"
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_text(stmt, 1, (concepto as NSString).utf8String, -1, nil)
+            sqlite3_bind_double(stmt, 2, cantidad)
+            sqlite3_bind_int(stmt, 3, Int32(id))
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
     }
 
     // MARK: - INGRESOS
@@ -142,19 +193,73 @@ class SQLiteManager {
     }
 
     func obtenerIngresos() -> [Ingreso] {
+
         var lista: [Ingreso] = []
-        let query = "SELECT cantidad, fecha FROM ingresos;"
+
+        let query = "SELECT id, cantidad, fecha FROM ingresos;"
+
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
-            while sqlite3_step(stmt) == SQLITE_ROW {
-                let cantidad = sqlite3_column_double(stmt, 0)
-                let fecha = Date(timeIntervalSince1970: sqlite3_column_double(stmt, 1))
 
-                lista.append(Ingreso(fecha: fecha, cantidad: cantidad))
+            while sqlite3_step(stmt) == SQLITE_ROW {
+
+                let id = Int(sqlite3_column_int(stmt, 0))
+
+                let cantidad = sqlite3_column_double(stmt, 1)
+
+                let fecha = Date(
+                    timeIntervalSince1970:
+                        sqlite3_column_double(stmt, 2)
+                )
+
+                lista.append(
+                    Ingreso(
+                        id: id,
+                        fecha: fecha,
+                        cantidad: cantidad
+                    )
+                )
             }
         }
+
         sqlite3_finalize(stmt)
+
         return lista
     }
+    
+    func eliminarIngreso(id: Int) {
+
+        let query = "DELETE FROM ingresos WHERE id = ?;"
+
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_int(stmt, 1, Int32(id))
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+
+    func actualizarIngreso(id: Int, cantidad: Double) {
+
+        let query = "UPDATE ingresos SET cantidad = ? WHERE id = ?;"
+
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_double(stmt, 1, cantidad)
+
+            sqlite3_bind_int(stmt, 2, Int32(id))
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+    
 }

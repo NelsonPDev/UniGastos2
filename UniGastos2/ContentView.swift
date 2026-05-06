@@ -3,14 +3,14 @@ import Charts
 
 // MARK: - MODELOS
 struct Gasto: Identifiable {
-    let id = UUID()
+    var id: Int
     var fecha: Date
     var concepto: String
     var cantidad: Double
 }
 
 struct Ingreso: Identifiable {
-    let id = UUID()
+    var id: Int
     var fecha: Date
     var cantidad: Double
 }
@@ -156,7 +156,7 @@ struct HomeView: View {
             
             // TARJETA BALANCE
             VStack {
-                Text("Balance:")
+                Text("Saldo Actual:")
                     .font(.system(size: 38, weight: .bold))
                     .foregroundColor(.white)
                 
@@ -269,12 +269,14 @@ struct GastosView: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var mostrarForm = false
+    @State private var gastoEditar: Gasto?
+    @State private var mostrarEditar = false
     
     var body: some View {
         
         VStack {
             
-            BalanceCard(
+            BalanceCard2(
                 monto: String(format: "%.0f",
                               gastos.reduce(0){$0 + $1.cantidad})
             )
@@ -313,17 +315,56 @@ struct GastosView: View {
             .cornerRadius(25)
             .padding(.horizontal)
             
-            VStack {
-                
+            List {
+
                 ForEach(gastos.reversed()) { g in
-                    
+
                     HistorialRow(
                         titulo: g.concepto,
                         monto: -g.cantidad,
                         fecha: g.fecha
                     )
+                    .listRowBackground(Color.clear)
+
+                    .swipeActions {
+
+                        Button {
+
+                            gastoEditar = g
+                            //mostrarEditar = true
+
+                        } label: {
+
+                            Label("Editar", systemImage: "pencil")
+                        }
+                        .tint(.yellow)
+
+                        Button(role: .destructive) {
+
+                            SQLiteManager.shared.eliminarGasto(id: g.id)
+
+                            gastos = SQLiteManager.shared.obtenerGastos()
+
+                        } label: {
+
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    }
+                    
+                    .sheet(item: $gastoEditar) { gasto in
+
+                        EditarGastoView(gasto: gasto) {
+
+                            gastos = SQLiteManager.shared.obtenerGastos()
+                        }
+                    }
+                    
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .frame(height: 300)
+            
             .padding(.horizontal)
             
             Button(action: {
@@ -340,22 +381,25 @@ struct GastosView: View {
                 esGasto: true
             ) { c, m in
                 
-                let nuevo = Gasto(
-                    fecha: Date(),
-                    concepto: c,
-                    cantidad: m
-                )
-                
-                gastos.append(nuevo)
-                
                 SQLiteManager.shared.insertarGasto(
                     concepto: c,
                     cantidad: m,
                     fecha: Date()
                 )
+
+                gastos = SQLiteManager.shared.obtenerGastos()
             }
             .navigationBarBackButtonHidden(true)
         }
+        
+        .sheet(item: $gastoEditar) { gasto in
+
+            EditarGastoView(gasto: gasto) {
+
+                gastos = SQLiteManager.shared.obtenerGastos()
+            }
+        }
+    
     }
 }
 
@@ -563,7 +607,14 @@ struct MainLayout<Content: View>: View {
 struct BalanceCard: View {
     let monto: String
     var body: some View {
-        Text("Balance: $\(monto)")
+        Text("Ingreso Total: $\(monto)")
+            .font(.largeTitle)
+    }
+}
+struct BalanceCard2: View {
+    let monto: String
+    var body: some View {
+        Text("Gasto Total: $\(monto)")
             .font(.largeTitle)
     }
 }
@@ -629,6 +680,8 @@ struct IngresosView: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var mostrarForm = false
+
+    @State private var ingresoEditar: Ingreso?
     
     var body: some View {
         
@@ -673,17 +726,47 @@ struct IngresosView: View {
             .cornerRadius(25)
             .padding(.horizontal)
             
-            VStack {
-                
+            List {
+
                 ForEach(ingresos.reversed()) { i in
-                    
+
                     HistorialRow(
                         titulo: "Ingreso",
                         monto: i.cantidad,
                         fecha: i.fecha
                     )
+                    .listRowBackground(Color.clear)
+
+                    .swipeActions {
+
+                        Button {
+
+                            ingresoEditar = i
+                            //mostrarEditar = true
+
+                        } label: {
+
+                            Label("Editar", systemImage: "pencil")
+                        }
+                            .tint(.yellow)
+
+                        Button(role: .destructive) {
+
+                            SQLiteManager.shared.eliminarIngreso(id: i.id)
+
+                            ingresos = SQLiteManager.shared.obtenerIngresos()
+
+                        } label: {
+
+                            Label("Eliminar", systemImage: "trash")
+                        }
+                    }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .frame(height: 300)
+            
             .padding(.horizontal)
             
             Button(action: {
@@ -700,19 +783,160 @@ struct IngresosView: View {
                 esGasto: false
             ) { _, m in
                 
-                let nuevo = Ingreso(
-                    fecha: Date(),
-                    cantidad: m
-                )
-                
-                ingresos.append(nuevo)
-                
                 SQLiteManager.shared.insertarIngreso(
                     cantidad: m,
                     fecha: Date()
                 )
+
+                ingresos = SQLiteManager.shared.obtenerIngresos()
             }
             .navigationBarBackButtonHidden(true)
+        }
+        .sheet(item: $ingresoEditar) { ingreso in
+
+            EditarIngresoView(ingreso: ingreso) {
+
+                ingresos = SQLiteManager.shared.obtenerIngresos()
+            }
+        }
+    
+    }
+}
+
+struct EditarGastoView: View {
+    
+    var gasto: Gasto
+    var alActualizar: () -> Void
+    
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var concepto: String = ""
+    @State private var cantidad: String = ""
+    
+    var body: some View {
+        
+        VStack(spacing: 20) {
+            
+            Text("Editar Gasto")
+                .font(.title)
+                .bold()
+            
+            TextField("Concepto", text: $concepto)
+                .textFieldStyle(.roundedBorder)
+            
+            TextField("Cantidad", text: $cantidad)
+                .keyboardType(.decimalPad)
+                .textFieldStyle(.roundedBorder)
+            
+            Button("Actualizar") {
+                
+                if let monto = Double(cantidad) {
+                    
+                    SQLiteManager.shared.actualizarGasto(
+                        id: gasto.id,
+                        concepto: concepto,
+                        cantidad: monto
+                    )
+                    
+                    alActualizar()
+                    dismiss()
+                }
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(12)
+        }
+        .padding()
+        .onAppear {
+            
+            concepto = gasto.concepto
+            cantidad = String(gasto.cantidad)
+        }
+    }
+}
+
+struct EditarIngresoView: View {
+
+    var ingreso: Ingreso
+    var alActualizar: () -> Void
+
+    @Environment(\.dismiss) var dismiss
+
+    @State private var cantidad: String = ""
+
+    var body: some View {
+
+        NavigationStack {
+
+            ZStack {
+
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 28/255, green: 19/255, blue: 63/255),
+                        Color(red: 120/255, green: 170/255, blue: 185/255)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 25) {
+
+                    Text("Editar Ingreso")
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundColor(.white)
+
+                    TextField("Cantidad", text: $cantidad)
+                        .foregroundStyle(.black)
+                        .keyboardType(.decimalPad)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(15)
+                        .padding(.horizontal)
+
+                    Button {
+
+                        if let monto = Double(cantidad) {
+
+                            SQLiteManager.shared.actualizarIngreso(
+                                id: ingreso.id,
+                                cantidad: monto
+                            )
+
+                            alActualizar()
+
+                            dismiss()
+                        }
+
+                    } label: {
+
+                        Text("Actualizar")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(15)
+                            .padding(.horizontal)
+                    }
+
+                    Button {
+
+                        dismiss()
+
+                    } label: {
+
+                        Text("Cancelar")
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                }
+            }
+        }
+        .onAppear {
+
+            cantidad = String(ingreso.cantidad)
         }
     }
 }
