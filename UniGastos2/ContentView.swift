@@ -107,6 +107,7 @@ struct ContentView: View {
                 listaGastos = SQLiteManager.shared.obtenerGastos()
                 listaIngresos = SQLiteManager.shared.obtenerIngresos()
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
 }
@@ -258,6 +259,7 @@ struct HomeView: View {
             .padding(.horizontal, 20)
             .padding(.top, 15)
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -352,6 +354,7 @@ struct GastosView: View {
                     fecha: Date()
                 )
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
 }
@@ -709,6 +712,7 @@ struct IngresosView: View {
                     fecha: Date()
                 )
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
 }
