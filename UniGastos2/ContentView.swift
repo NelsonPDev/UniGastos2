@@ -395,35 +395,115 @@ struct GastosView: View {
     }
 }
 
-// MARK: - FORMULARIO
+// MARK: - FORMULARIO MODERNO
 struct FormularioPro: View {
+
     let titulo: String
     let esGasto: Bool
     var alGuardar: (String, Double) -> Void
-    
+
     @Environment(\.dismiss) var dismiss
+
     @State private var concepto = ""
     @State private var monto = ""
-    
+
     var body: some View {
-        VStack(spacing: 20) {
-            Text(titulo).font(.title).bold()
-            
-            TextField("Descripción", text: $concepto)
-                .textFieldStyle(.roundedBorder)
-            
-            TextField("Cantidad", text: $monto)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
-            
-            Button("Guardar") {
-                if let m = Double(monto), m.isFinite, m > 0, !concepto.isEmpty {
-                    alGuardar(concepto, m)
-                    dismiss()
+
+        NavigationStack {
+
+            ZStack {
+
+                // FONDO
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 28/255, green: 19/255, blue: 63/255),
+                        Color(red: 120/255, green: 170/255, blue: 185/255)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 25) {
+
+                    Spacer()
+
+                    // TITULO
+                    Text(titulo)
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundColor(.white)
+
+                    // TARJETA
+                    VStack(spacing: 20) {
+
+                        // SOLO MOSTRAR CONCEPTO EN GASTOS
+                        if esGasto {
+
+                            TextField("Concepto", text: $concepto)
+                                .foregroundStyle(.black)
+                                .padding()
+                                .background(Color.white.opacity(0.95))
+                                .cornerRadius(18)
+                                .font(.system(size: 20))
+                        }
+
+                        // MONTO
+                        TextField("Cantidad", text: $monto)
+                            .keyboardType(.decimalPad)
+                            .foregroundColor(.black)
+                            .padding()
+                            .background(Color.white.opacity(0.95))
+                            .cornerRadius(18)
+                            .font(.system(size: 20))
+
+                        // BOTON GUARDAR
+                        Button {
+
+                            if let m = Double(monto),
+                               m.isFinite,
+                               m > 0 {
+
+                                let texto = concepto.isEmpty
+                                ? "Ingreso"
+                                : concepto
+
+                                alGuardar(texto, m)
+
+                                dismiss()
+                            }
+
+                        } label: {
+
+                            Text("Guardar")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(18)
+                        }
+
+                        // CANCELAR
+                        Button {
+
+                            dismiss()
+
+                        } label: {
+
+                            Text("Cancelar")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+                    .padding(25)
+                    .background(Color.black.opacity(0.25))
+                    .cornerRadius(30)
+                    .padding(.horizontal, 25)
+
+                    Spacer()
                 }
             }
         }
-        .padding()
     }
 }
 
