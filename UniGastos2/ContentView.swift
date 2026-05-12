@@ -271,6 +271,8 @@ struct GastosView: View {
     @State private var mostrarForm = false
     @State private var gastoEditar: Gasto?
     @State private var mostrarEditar = false
+    @State private var mostrarAlertaEliminar = false
+    @State private var gastoAEliminar: Gasto?
     
     var body: some View {
         
@@ -341,9 +343,8 @@ struct GastosView: View {
 
                         Button(role: .destructive) {
 
-                            SQLiteManager.shared.eliminarGasto(id: g.id)
-
-                            gastos = SQLiteManager.shared.obtenerGastos()
+                            gastoAEliminar = g
+                            mostrarAlertaEliminar = true
 
                         } label: {
 
@@ -384,6 +385,26 @@ struct GastosView: View {
             .navigationBarBackButtonHidden(true)
         }
         
+        .alert("Eliminar gasto", isPresented: $mostrarAlertaEliminar) {
+
+            Button("Cancelar", role: .cancel) { }
+
+            Button("Eliminar", role: .destructive) {
+
+                if let gasto = gastoAEliminar {
+
+                    SQLiteManager.shared.eliminarGasto(id: gasto.id)
+
+                    gastos = SQLiteManager.shared.obtenerGastos()
+                }
+
+            }
+
+        } message: {
+
+            Text("¿Seguro que deseas eliminar este gasto?")
+        }
+        
         .sheet(item: $gastoEditar) { gasto in
 
             EditarGastoView(gasto: gasto) {
@@ -391,6 +412,7 @@ struct GastosView: View {
                 gastos = SQLiteManager.shared.obtenerGastos()
             }
         }
+        
     
     }
 }
@@ -752,8 +774,9 @@ struct IngresosView: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var mostrarForm = false
-
     @State private var ingresoEditar: Ingreso?
+    @State private var mostrarAlertaEliminar = false
+    @State private var ingresoAEliminar: Ingreso?
     
     var body: some View {
         
@@ -824,9 +847,8 @@ struct IngresosView: View {
 
                         Button(role: .destructive) {
 
-                            SQLiteManager.shared.eliminarIngreso(id: i.id)
-
-                            ingresos = SQLiteManager.shared.obtenerIngresos()
+                            ingresoAEliminar = i
+                            mostrarAlertaEliminar = true
 
                         } label: {
 
@@ -864,6 +886,27 @@ struct IngresosView: View {
             }
             .navigationBarBackButtonHidden(true)
         }
+        
+        .alert("Eliminar ingreso", isPresented: $mostrarAlertaEliminar) {
+
+            Button("Cancelar", role: .cancel) { }
+
+            Button("Eliminar", role: .destructive) {
+
+                if let ingreso = ingresoAEliminar {
+
+                    SQLiteManager.shared.eliminarIngreso(id: ingreso.id)
+
+                    ingresos = SQLiteManager.shared.obtenerIngresos()
+                }
+
+            }
+
+        } message: {
+
+            Text("¿Seguro que deseas eliminar este ingreso?")
+        }
+        
         .sheet(item: $ingresoEditar) { ingreso in
 
             EditarIngresoView(ingreso: ingreso) {
