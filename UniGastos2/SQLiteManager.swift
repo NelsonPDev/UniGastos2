@@ -72,13 +72,21 @@ class SQLiteManager {
 
     // MARK: - USUARIO
     func guardarUsuario(nombre: String) {
+
+        // BORRA EL USUARIO ANTERIOR
+        execute(query: "DELETE FROM usuario;")
+
         let query = "INSERT INTO usuario (nombre) VALUES (?);"
+
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
             sqlite3_bind_text(stmt, 1, (nombre as NSString).utf8String, -1, nil)
+
             sqlite3_step(stmt)
         }
+
         sqlite3_finalize(stmt)
     }
 

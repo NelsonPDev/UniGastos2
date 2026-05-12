@@ -103,9 +103,18 @@ struct ContentView: View {
             }
             // ON APPEAR AGREGADO
             .onAppear {
+
                 usuario = SQLiteManager.shared.obtenerUsuario()
+
                 listaGastos = SQLiteManager.shared.obtenerGastos()
+
                 listaIngresos = SQLiteManager.shared.obtenerIngresos()
+
+                // SI YA EXISTE USUARIO
+                if !usuario.isEmpty {
+
+                    irHome = true
+                }
             }
             .navigationBarBackButtonHidden(true)
         }
