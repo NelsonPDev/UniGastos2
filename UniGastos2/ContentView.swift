@@ -174,6 +174,7 @@ struct HomeView: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var filtroSeleccionado = "Mes"
+    @State private var refreshID = UUID()
     
     var safeProgress: Double {
         let value = abs(balance)
@@ -208,8 +209,12 @@ struct HomeView: View {
     }
     
     var body: some View {
-        MainLayout(nombre: nombre, ingresos: $ingresos, gastos: $gastos) {
-            
+        let _ = print("Usuario actual:", nombre)
+        MainLayout(
+            nombre: nombre,
+            ingresos: $ingresos,
+            gastos: $gastos
+        ) {
             // TARJETA BALANCE
             VStack {
                 Text("Saldo Actual:")
@@ -316,6 +321,7 @@ struct HomeView: View {
             .padding(.top, 15)
         }
         .navigationBarBackButtonHidden(true)
+        .id(nombre)
     }
 }
 
@@ -635,6 +641,9 @@ struct MainLayout<Content: View>: View {
                     Button {
 
                         SQLiteManager.shared.cerrarSesion()
+
+                        ingresos.removeAll()
+                        gastos.removeAll()
 
                         dismiss()
 

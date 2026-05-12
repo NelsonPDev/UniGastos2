@@ -116,15 +116,35 @@ class SQLiteManager {
 
     // MARK: - GASTOS
     func insertarGasto(concepto: String, cantidad: Double, fecha: Date) {
-        let query = "INSERT INTO gastos (concepto, cantidad, fecha) VALUES (?, ?, ?);"
+
+        let usuarioId = obtenerUsuarioIdActivo()
+
+        let query = """
+        INSERT INTO gastos (usuario_id, concepto, cantidad, fecha)
+        VALUES (?, ?, ?, ?);
+        """
+
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
-            sqlite3_bind_text(stmt, 1, (concepto as NSString).utf8String, -1, nil)
-            sqlite3_bind_double(stmt, 2, cantidad)
-            sqlite3_bind_double(stmt, 3, fecha.timeIntervalSince1970)
+
+            sqlite3_bind_int(stmt, 1, Int32(usuarioId))
+
+            sqlite3_bind_text(
+                stmt,
+                2,
+                (concepto as NSString).utf8String,
+                -1,
+                nil
+            )
+
+            sqlite3_bind_double(stmt, 3, cantidad)
+
+            sqlite3_bind_double(stmt, 4, fecha.timeIntervalSince1970)
+
             sqlite3_step(stmt)
         }
+
         sqlite3_finalize(stmt)
     }
 
@@ -132,11 +152,19 @@ class SQLiteManager {
 
         var lista: [Gasto] = []
 
-        let query = "SELECT id, concepto, cantidad, fecha FROM gastos;"
+        let usuarioId = obtenerUsuarioIdActivo()
+
+        let query = """
+        SELECT id, concepto, cantidad, fecha
+        FROM gastos
+        WHERE usuario_id = ?;
+        """
 
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+            
+            sqlite3_bind_int(stmt, 1, Int32(usuarioId))
 
             while sqlite3_step(stmt) == SQLITE_ROW {
 
@@ -200,14 +228,27 @@ class SQLiteManager {
 
     // MARK: - INGRESOS
     func insertarIngreso(cantidad: Double, fecha: Date) {
-        let query = "INSERT INTO ingresos (cantidad, fecha) VALUES (?, ?);"
+
+        let usuarioId = obtenerUsuarioIdActivo()
+
+        let query = """
+        INSERT INTO ingresos (usuario_id, cantidad, fecha)
+        VALUES (?, ?, ?);
+        """
+
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
-            sqlite3_bind_double(stmt, 1, cantidad)
-            sqlite3_bind_double(stmt, 2, fecha.timeIntervalSince1970)
+
+            sqlite3_bind_int(stmt, 1, Int32(usuarioId))
+
+            sqlite3_bind_double(stmt, 2, cantidad)
+
+            sqlite3_bind_double(stmt, 3, fecha.timeIntervalSince1970)
+
             sqlite3_step(stmt)
         }
+
         sqlite3_finalize(stmt)
     }
 
@@ -215,11 +256,19 @@ class SQLiteManager {
 
         var lista: [Ingreso] = []
 
-        let query = "SELECT id, cantidad, fecha FROM ingresos;"
+        let usuarioId = obtenerUsuarioIdActivo()
+
+        let query = """
+        SELECT id, cantidad, fecha
+        FROM ingresos
+        WHERE usuario_id = ?;
+        """
 
         var stmt: OpaquePointer?
 
         if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+            
+            sqlite3_bind_int(stmt, 1, Int32(usuarioId))
 
             while sqlite3_step(stmt) == SQLITE_ROW {
 
@@ -389,6 +438,27 @@ class SQLiteManager {
     func cerrarSesion() {
 
         execute(query: "DELETE FROM sesion;")
+    }
+    
+    func obtenerUsuarioIdActivo() -> Int {
+
+        let query = "SELECT usuario_id FROM sesion LIMIT 1;"
+
+        var stmt: OpaquePointer?
+
+        var id = 0
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            if sqlite3_step(stmt) == SQLITE_ROW {
+
+                id = Int(sqlite3_column_int(stmt, 0))
+            }
+        }
+
+        sqlite3_finalize(stmt)
+
+        return id
     }
     
 }
