@@ -34,13 +34,14 @@ class SQLiteManager {
         let createUsuario = """
         CREATE TABLE IF NOT EXISTS usuario(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT
+            nombre TEXT UNIQUE
         );
         """
 
         let createGastos = """
         CREATE TABLE IF NOT EXISTS gastos(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER,
             concepto TEXT,
             cantidad DOUBLE,
             fecha DOUBLE
@@ -50,14 +51,23 @@ class SQLiteManager {
         let createIngresos = """
         CREATE TABLE IF NOT EXISTS ingresos(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER,
             cantidad DOUBLE,
             fecha DOUBLE
+        );
+        """
+        
+        let createSesion = """
+        CREATE TABLE IF NOT EXISTS sesion(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER
         );
         """
 
         execute(query: createUsuario)
         execute(query: createGastos)
         execute(query: createIngresos)
+        execute(query: createSesion)
     }
 
     func execute(query: String) {
@@ -186,6 +196,7 @@ class SQLiteManager {
 
         sqlite3_finalize(stmt)
     }
+    
 
     // MARK: - INGRESOS
     func insertarIngreso(cantidad: Double, fecha: Date) {
@@ -268,6 +279,116 @@ class SQLiteManager {
         }
 
         sqlite3_finalize(stmt)
+    }
+    
+    // MARK: - CREAR USUARIO
+    func crearUsuario(nombre: String) {
+
+        let query = "INSERT OR IGNORE INTO usuario (nombre) VALUES (?);"
+
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_text(stmt, 1, (nombre as NSString).utf8String, -1, nil)
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+    
+    func obtenerUsuarios() -> [String] {
+
+        var lista: [String] = []
+
+        let query = "SELECT nombre FROM usuario;"
+
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            while sqlite3_step(stmt) == SQLITE_ROW {
+
+                let nombre = String(
+                    cString: sqlite3_column_text(stmt, 0)
+                )
+
+                lista.append(nombre)
+            }
+        }
+
+        sqlite3_finalize(stmt)
+
+        return lista
+    }
+    
+    func iniciarSesion(nombre: String) {
+
+        execute(query: "DELETE FROM sesion;")
+
+        let queryBuscar = "SELECT id FROM usuario WHERE nombre = ?;"
+
+        var stmt: OpaquePointer?
+
+        var usuarioId = 0
+
+        if sqlite3_prepare_v2(db, queryBuscar, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_text(stmt, 1, (nombre as NSString).utf8String, -1, nil)
+
+            if sqlite3_step(stmt) == SQLITE_ROW {
+
+                usuarioId = Int(sqlite3_column_int(stmt, 0))
+            }
+        }
+
+        sqlite3_finalize(stmt)
+
+        let querySesion = "INSERT INTO sesion (usuario_id) VALUES (?);"
+
+        if sqlite3_prepare_v2(db, querySesion, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_int(stmt, 1, Int32(usuarioId))
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+    
+    func obtenerUsuarioActivo() -> String {
+
+        let query = """
+        SELECT usuario.nombre
+        FROM usuario
+        INNER JOIN sesion
+        ON usuario.id = sesion.usuario_id
+        LIMIT 1;
+        """
+
+        var stmt: OpaquePointer?
+
+        var nombre = ""
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            if sqlite3_step(stmt) == SQLITE_ROW {
+
+                nombre = String(
+                    cString: sqlite3_column_text(stmt, 0)
+                )
+            }
+        }
+
+        sqlite3_finalize(stmt)
+
+        return nombre
+    }
+    
+    func cerrarSesion() {
+
+        execute(query: "DELETE FROM sesion;")
     }
     
 }

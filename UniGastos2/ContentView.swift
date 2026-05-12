@@ -18,6 +18,7 @@ struct Ingreso: Identifiable {
 // MARK: - VISTA RAÍZ
 struct ContentView: View {
     @State private var usuario: String = ""
+    @State private var usuariosGuardados: [String] = []
     @State private var irHome = false
     @State var listaGastos: [Gasto] = []
     @State var listaIngresos: [Ingreso] = []
@@ -68,10 +69,16 @@ struct ContentView: View {
                         
                         // BOTÓN
                         Button(action: {
+
                             if !usuario.isEmpty {
-                                SQLiteManager.shared.guardarUsuario(nombre: usuario)
+
+                                SQLiteManager.shared.crearUsuario(nombre: usuario)
+
+                                SQLiteManager.shared.iniciarSesion(nombre: usuario)
+
                                 irHome = true
                             }
+
                         }) {
                             Text("Crea Cuenta")
                                 .font(.system(size: 24, weight: .medium))
@@ -79,6 +86,45 @@ struct ContentView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
                         }
+                        
+                        VStack(alignment: .leading, spacing: 10) {
+
+                            Text("Cuentas guardadas")
+                                .foregroundColor(.white)
+                                .font(.headline)
+
+                            ForEach(usuariosGuardados, id: \.self) { user in
+
+                                Button {
+
+                                    usuario = user
+
+                                    SQLiteManager.shared.iniciarSesion(nombre: user)
+
+                                    listaGastos = SQLiteManager.shared.obtenerGastos()
+
+                                    listaIngresos = SQLiteManager.shared.obtenerIngresos()
+
+                                    irHome = true
+
+                                } label: {
+
+                                    HStack {
+
+                                        Image(systemName: "person.circle.fill")
+
+                                        Text(user)
+
+                                        Spacer()
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.white.opacity(0.15))
+                                    .cornerRadius(15)
+                                }
+                            }
+                        }
+                        .padding(.top, 10)
                     }
                     .padding(.vertical, 35)
                     .padding(.horizontal, 25)
@@ -104,14 +150,15 @@ struct ContentView: View {
             // ON APPEAR AGREGADO
             .onAppear {
 
-                usuario = SQLiteManager.shared.obtenerUsuario()
+                usuariosGuardados = SQLiteManager.shared.obtenerUsuarios()
 
-                listaGastos = SQLiteManager.shared.obtenerGastos()
+                usuario = SQLiteManager.shared.obtenerUsuarioActivo()
 
-                listaIngresos = SQLiteManager.shared.obtenerIngresos()
-
-                // SI YA EXISTE USUARIO
                 if !usuario.isEmpty {
+
+                    listaGastos = SQLiteManager.shared.obtenerGastos()
+
+                    listaIngresos = SQLiteManager.shared.obtenerIngresos()
 
                     irHome = true
                 }
@@ -544,6 +591,7 @@ struct MainLayout<Content: View>: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var vistaActiva: String = "Resumen"
+    @Environment(\.dismiss) var dismiss
     
     let content: () -> Content
     
@@ -584,6 +632,19 @@ struct MainLayout<Content: View>: View {
                     
                     Spacer()
                     
+                    Button {
+
+                        SQLiteManager.shared.cerrarSesion()
+
+                        dismiss()
+
+                    } label: {
+
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.title)
+                            .foregroundColor(.white)
+                    }
+
                     Image("icono")
                         .resizable()
                         .scaledToFit()
