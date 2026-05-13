@@ -160,10 +160,12 @@ struct ContentView: View {
                                     )
                                 }
                             }
+                            .environment(\.defaultMinListRowHeight, 20)
                             .scrollContentBackground(.hidden)
                             .background(Color.clear)
-                            .frame(height: 220)
+                            .frame(height: 150)
                             .cornerRadius(20)
+                            .listStyle(.plain)
                         }
                         .padding(.top, 10)
                     }
