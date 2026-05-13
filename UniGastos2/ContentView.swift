@@ -65,14 +65,19 @@ struct ContentView: View {
                             .foregroundColor(.white)
                         
                         // TEXTFIELD
-                        TextField("", text: $usuario)
-                            .padding()
-                            .frame(height: 65)
-                            .foregroundStyle(Color.black)
-                            .background(Color.white.opacity(0.95))
-                            .cornerRadius(35)
-                            .padding(.horizontal, 10)
-                            .font(.system(size: 22))
+                        TextField(
+                            "",
+                            text: $usuario,
+                            prompt: Text("Ingresa tu usuario")
+                                .foregroundColor(.gray)
+                        )
+                        .padding()
+                        .frame(height: 65)
+                        .foregroundStyle(Color.black)
+                        .background(Color.white.opacity(0.95))
+                        .cornerRadius(35)
+                        .padding(.horizontal, 10)
+                        .font(.system(size: 22))
                         
                         // BOTÓN
                         Button(action: {
@@ -234,12 +239,17 @@ struct ContentView: View {
                                 .bold()
                                 .foregroundColor(.white)
 
-                            TextField("Nuevo nombre", text: $nuevoNombre)
-                                .foregroundStyle(.black)
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(15)
-                                .padding(.horizontal)
+                            TextField(
+                                "",
+                                text: $nuevoNombre,
+                                prompt: Text("Nuevo nombre")
+                                    .foregroundColor(.gray)
+                            )
+                            .foregroundStyle(.black)
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .padding(.horizontal)
 
                             Button {
 
@@ -657,22 +667,32 @@ struct FormularioPro: View {
                         // SOLO MOSTRAR CONCEPTO EN GASTOS
                         if esGasto {
 
-                            TextField("Concepto", text: $concepto)
-                                .foregroundStyle(.black)
-                                .padding()
-                                .background(Color.white.opacity(0.95))
-                                .cornerRadius(18)
-                                .font(.system(size: 20))
-                        }
-
-                        // MONTO
-                        TextField("Cantidad", text: $monto)
-                            .keyboardType(.decimalPad)
-                            .foregroundColor(.black)
+                            TextField(
+                                "",
+                                text: $concepto,
+                                prompt: Text("Concepto")
+                                    .foregroundColor(.gray)
+                            )
+                            .foregroundStyle(.black)
                             .padding()
                             .background(Color.white.opacity(0.95))
                             .cornerRadius(18)
                             .font(.system(size: 20))
+                        }
+
+                        // MONTO
+                        TextField(
+                            "",
+                            text: $monto,
+                            prompt: Text("Cantidad")
+                                .foregroundColor(.gray)
+                        )
+                        .keyboardType(.decimalPad)
+                        .foregroundColor(.black)
+                        .padding()
+                        .background(Color.white.opacity(0.95))
+                        .cornerRadius(18)
+                        .font(.system(size: 20))
 
                         // BOTON GUARDAR
                         Button {
@@ -1164,19 +1184,29 @@ struct EditarGastoView: View {
                         .bold()
                         .foregroundColor(.white)
 
-                    TextField("Concepto", text: $concepto)
-                        .foregroundStyle(.black)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(15)
-                        .padding(.horizontal)
+                    TextField(
+                        "",
+                        text: $concepto,
+                        prompt: Text("Concepto")
+                            .foregroundColor(.gray)
+                    )
+                    .foregroundStyle(.black)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(15)
+                    .padding(.horizontal)
 
-                    TextField("Cantidad", text: $cantidad)
-                        .foregroundStyle(.black)
-                        .keyboardType(.decimalPad)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(15)
+                    TextField(
+                        "",
+                        text: $cantidad,
+                        prompt: Text("Cantidad")
+                            .foregroundColor(.gray)
+                    )
+                    .foregroundStyle(.black)
+                    .keyboardType(.decimalPad)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(15)
                         .padding(.horizontal)
 
                     Button {
@@ -1258,12 +1288,17 @@ struct EditarIngresoView: View {
                         .bold()
                         .foregroundColor(.white)
 
-                    TextField("Cantidad", text: $cantidad)
-                        .foregroundStyle(.black)
-                        .keyboardType(.decimalPad)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(15)
+                    TextField(
+                        "",
+                        text: $cantidad,
+                        prompt: Text("Cantidad")
+                            .foregroundColor(.gray)
+                    )
+                    .foregroundStyle(.black)
+                    .keyboardType(.decimalPad)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(15)
                         .padding(.horizontal)
 
                     Button {
