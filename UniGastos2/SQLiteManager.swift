@@ -461,4 +461,42 @@ class SQLiteManager {
         return id
     }
     
+    func eliminarUsuario(nombre: String) {
+
+        let query = "DELETE FROM usuario WHERE nombre = ?;"
+
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_text(stmt, 1, (nombre as NSString).utf8String, -1, nil)
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+
+    func editarUsuario(nombreActual: String, nuevoNombre: String) {
+
+        let query = """
+        UPDATE usuario
+        SET nombre = ?
+        WHERE nombre = ?;
+        """
+
+        var stmt: OpaquePointer?
+
+        if sqlite3_prepare_v2(db, query, -1, &stmt, nil) == SQLITE_OK {
+
+            sqlite3_bind_text(stmt, 1, (nuevoNombre as NSString).utf8String, -1, nil)
+
+            sqlite3_bind_text(stmt, 2, (nombreActual as NSString).utf8String, -1, nil)
+
+            sqlite3_step(stmt)
+        }
+
+        sqlite3_finalize(stmt)
+    }
+    
 }

@@ -22,6 +22,13 @@ struct ContentView: View {
     @State private var irHome = false
     @State var listaGastos: [Gasto] = []
     @State var listaIngresos: [Ingreso] = []
+    @State private var mostrarEliminarUsuario = false
+    @State private var usuarioEliminar: String?
+
+    @State private var mostrarEditarUsuario = false
+    @State private var usuarioEditar: String?
+
+    @State private var nuevoNombre = ""
     
     var body: some View {
         NavigationStack {
@@ -93,21 +100,9 @@ struct ContentView: View {
                                 .foregroundColor(.white)
                                 .font(.headline)
 
-                            ForEach(usuariosGuardados, id: \.self) { user in
+                            List {
 
-                                Button {
-
-                                    usuario = user
-
-                                    SQLiteManager.shared.iniciarSesion(nombre: user)
-
-                                    listaGastos = SQLiteManager.shared.obtenerGastos()
-
-                                    listaIngresos = SQLiteManager.shared.obtenerIngresos()
-
-                                    irHome = true
-
-                                } label: {
+                                ForEach(usuariosGuardados, id: \.self) { user in
 
                                     HStack {
 
@@ -118,11 +113,57 @@ struct ContentView: View {
                                         Spacer()
                                     }
                                     .foregroundColor(.white)
-                                    .padding()
-                                    .background(Color.white.opacity(0.15))
-                                    .cornerRadius(15)
+                                    .padding(.vertical, 8)
+
+                                    .contentShape(Rectangle())
+
+                                    .onTapGesture {
+
+                                        usuario = user
+
+                                        SQLiteManager.shared.iniciarSesion(nombre: user)
+
+                                        listaGastos = SQLiteManager.shared.obtenerGastos()
+
+                                        listaIngresos = SQLiteManager.shared.obtenerIngresos()
+
+                                        irHome = true
+                                    }
+
+                                    .swipeActions(allowsFullSwipe: false) {
+
+                                        Button {
+
+                                            usuarioEditar = user
+                                            nuevoNombre = user
+                                            mostrarEditarUsuario = true
+
+                                        } label: {
+
+                                            Label("Editar", systemImage: "pencil")
+                                        }
+                                        .tint(.yellow)
+
+                                        Button(role: .destructive) {
+
+                                            usuarioEliminar = user
+                                            mostrarEliminarUsuario = true
+
+                                        } label: {
+
+                                            Label("Eliminar", systemImage: "trash")
+                                        }
+                                    }
+
+                                    .listRowBackground(
+                                        Color.white.opacity(0.15)
+                                    )
                                 }
                             }
+                            .scrollContentBackground(.hidden)
+                            .background(Color.clear)
+                            .frame(height: 220)
+                            .cornerRadius(20)
                         }
                         .padding(.top, 10)
                     }
@@ -147,6 +188,97 @@ struct ContentView: View {
             .navigationDestination(isPresented: $irHome) {
                 HomeView(nombre: usuario, ingresos: $listaIngresos, gastos: $listaGastos)
             }
+            
+            .alert("Eliminar usuario", isPresented: $mostrarEliminarUsuario) {
+
+                Button("Cancelar", role: .cancel) { }
+
+                Button("Eliminar", role: .destructive) {
+
+                    if let user = usuarioEliminar {
+
+                        SQLiteManager.shared.eliminarUsuario(nombre: user)
+
+                        usuariosGuardados = SQLiteManager.shared.obtenerUsuarios()
+                    }
+
+                }
+
+            } message: {
+
+                Text("¿Seguro que deseas eliminar este usuario?")
+            }
+
+            .sheet(isPresented: $mostrarEditarUsuario) {
+
+                NavigationStack {
+
+                    ZStack {
+
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 28/255, green: 19/255, blue: 63/255),
+                                Color(red: 120/255, green: 170/255, blue: 185/255)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .ignoresSafeArea()
+
+                        VStack(spacing: 25) {
+
+                            Text("Editar Usuario")
+                                .font(.largeTitle)
+                                .bold()
+                                .foregroundColor(.white)
+
+                            TextField("Nuevo nombre", text: $nuevoNombre)
+                                .foregroundStyle(.black)
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .padding(.horizontal)
+
+                            Button {
+
+                                if let viejo = usuarioEditar {
+
+                                    SQLiteManager.shared.editarUsuario(
+                                        nombreActual: viejo,
+                                        nuevoNombre: nuevoNombre
+                                    )
+
+                                    usuariosGuardados = SQLiteManager.shared.obtenerUsuarios()
+
+                                    mostrarEditarUsuario = false
+                                }
+
+                            } label: {
+
+                                Text("Actualizar")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .cornerRadius(15)
+                                    .padding(.horizontal)
+                            }
+
+                            Button {
+
+                                mostrarEditarUsuario = false
+
+                            } label: {
+
+                                Text("Cancelar")
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        }
+                    }
+                }
+            }
+            
             // ON APPEAR AGREGADO
             .onAppear {
 
