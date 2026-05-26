@@ -15,8 +15,189 @@ struct Ingreso: Identifiable {
     var cantidad: Double
 }
 
-// MARK: - VISTA RAÍZ
 struct ContentView: View {
+
+    @State private var tieneUsuario = false
+
+    var body: some View {
+
+        Group {
+
+            if tieneUsuario {
+
+                LoginView()
+
+            } else {
+
+                RegistroView()
+            }
+        }
+        .onAppear {
+
+            let usuario = SQLiteManager.shared.obtenerUsuario()
+
+            tieneUsuario = !usuario.isEmpty
+        }
+    }
+}
+
+// MARK: - LOGIN VIEW
+struct LoginView: View {
+
+    @State private var usuario = ""
+    @State private var mostrarError = false
+    @State private var irHome = false
+
+    @State var listaGastos: [Gasto] = []
+    @State var listaIngresos: [Ingreso] = []
+
+    var body: some View {
+
+        NavigationStack {
+
+            GeometryReader { geo in
+
+                ZStack {
+
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 28/255, green: 19/255, blue: 63/255),
+                            Color(red: 101/255, green: 144/255, blue: 157/255)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
+
+                    VStack(spacing: 25) {
+
+                        Spacer()
+
+                        Image("icono")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: min(geo.size.width * 0.4, 180),
+                                height: min(geo.size.width * 0.4, 180)
+                            )
+
+                        Text("UniGastos")
+                            .font(.system(size: 35, weight: .bold, design: .serif))
+                            .fontWeight(.heavy)
+                            .foregroundColor(.white)
+                            .tracking(1.5)
+
+                        VStack(spacing: 20) {
+
+                            Text("Iniciar Sesión")
+                                .font(.system(size: 28, weight: .bold, design: .serif))
+                                .fontWeight(.heavy)
+                                .foregroundColor(.white)
+                                .tracking(0.75)
+
+                            // TEXTFIELD
+                            TextField(
+                                "",
+                                text: $usuario,
+                                prompt: Text("Usuario")
+                                    .font(.system(size: 24, weight: .bold, design: .serif))
+                                    .foregroundColor(.gray)
+                            )
+                            .padding()
+                            .frame(height: 65)
+                            .foregroundStyle(Color.black)
+                            .background(Color.white.opacity(0.95))
+                            .cornerRadius(35)
+                            .padding(.horizontal, 10)
+                            .font(.system(size: 22))
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+
+                            .onChange(of: usuario) { _, newValue in
+
+                                let filtrado = newValue.filter { $0.isLetter }
+
+                                usuario = String(filtrado.prefix(12))
+                            }
+
+                            Button {
+
+                                let usuarioGuardado =
+                                    SQLiteManager.shared.obtenerUsuario()
+
+                                let nombreLimpio =
+                                    usuario.trimmingCharacters(
+                                        in: .whitespacesAndNewlines
+                                    )
+
+                                if nombreLimpio == usuarioGuardado {
+
+                                    listaGastos =
+                                        SQLiteManager.shared.obtenerGastos()
+
+                                    listaIngresos =
+                                        SQLiteManager.shared.obtenerIngresos()
+
+                                    irHome = true
+
+                                } else {
+
+                                    mostrarError = true
+                                }
+
+                            } label: {
+
+                                Text("Entrar")
+                                    .font(.system(size: 24, weight: .bold, design: .serif))
+                                    .foregroundColor(Color.white.opacity(0.7))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                            }
+
+                        }
+                        .padding(.vertical, 35)
+                        .padding(.horizontal, 25)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 40/255, green: 42/255, blue: 92/255),
+                                    Color(red: 58/255, green: 65/255, blue: 120/255)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .cornerRadius(35)
+                        .padding(.horizontal, 30)
+
+                        Spacer()
+                    }
+                }
+            }
+
+            .alert("Error", isPresented: $mostrarError) {
+
+                Button("OK", role: .cancel) { }
+
+            } message: {
+
+                Text("El usuario no coincide")
+            }
+
+            .navigationDestination(isPresented: $irHome) {
+
+                HomeView(
+                    nombre: usuario,
+                    ingresos: $listaIngresos,
+                    gastos: $listaGastos
+                )
+            }
+        }
+    }
+}
+
+// MARK: - VISTA Registro
+struct RegistroView: View {
     @State private var usuario: String = ""
     @State private var irHome = false
     @State var listaGastos: [Gasto] = []
