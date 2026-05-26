@@ -549,16 +549,32 @@ struct GastosView: View {
                     }
                     
                     Chart(datos) { item in
-                        
+
                         LineMark(
                             x: .value("Fecha", item.fecha),
                             y: .value("Monto", item.cantidad)
                         )
-                        
+                        .foregroundStyle(.white)
+
                         PointMark(
                             x: .value("Fecha", item.fecha),
                             y: .value("Monto", item.cantidad)
                         )
+                        .foregroundStyle(.cyan)
+                    }
+                    .chartXAxis {
+                        AxisMarks(position: .bottom) {
+                            AxisGridLine().foregroundStyle(.white.opacity(0.3))
+                            AxisTick().foregroundStyle(.white)
+                            AxisValueLabel().foregroundStyle(.white)
+                        }
+                    }
+                    .chartYAxis {
+                        AxisMarks(position: .leading) {
+                            AxisGridLine().foregroundStyle(.white.opacity(0.3))
+                            AxisTick().foregroundStyle(.white)
+                            AxisValueLabel().foregroundStyle(.white)
+                        }
                     }
                     .frame(height: 200)
                     .padding()
