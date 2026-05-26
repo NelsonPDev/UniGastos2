@@ -18,291 +18,153 @@ struct Ingreso: Identifiable {
 // MARK: - VISTA RAÍZ
 struct ContentView: View {
     @State private var usuario: String = ""
-    @State private var usuariosGuardados: [String] = []
     @State private var irHome = false
     @State var listaGastos: [Gasto] = []
     @State var listaIngresos: [Ingreso] = []
-    @State private var mostrarEliminarUsuario = false
-    @State private var usuarioEliminar: String?
-
-    @State private var mostrarEditarUsuario = false
-    @State private var usuarioEditar: String?
-
-    @State private var nuevoNombre = ""
     
     var body: some View {
         NavigationStack {
-            
-            ZStack {
-                LinearGradient(gradient: Gradient(colors: [Color(red: 28/255, green: 19/255, blue: 63/255), Color(red: 101/255, green: 144/255, blue: 157/255)]), startPoint: .top, endPoint: .bottom).ignoresSafeArea()
-                
-                VStack(spacing: 25) {
-                    
-                    Spacer().frame(height: 30)
-                    
-                    // LOGO
-                    Image("icono")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 180, height: 180)
-                    
-                    // TÍTULO
-                    Text("UniGastos")
-                        .font(.system(size: 42, weight: .bold))
-                        .foregroundColor(.white)
-                    
-                    Spacer().frame(height: 20)
-                    
-                    // TARJETA LOGIN
-                    VStack(spacing: 20) {
-                        
-                        Text("Registro")
-                            .font(.system(size: 38, weight: .medium))
-                            .foregroundColor(.white)
-                        
-                        Text("Usuario")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
-                        
-                        // TEXTFIELD
-                        TextField(
-                            "",
-                            text: $usuario,
-                            prompt: Text("Ingresa tu usuario")
-                                .foregroundColor(.gray)
-                        )
-                        .padding()
-                        .frame(height: 65)
-                        .foregroundStyle(Color.black)
-                        .background(Color.white.opacity(0.95))
-                        .cornerRadius(35)
-                        .padding(.horizontal, 10)
-                        .font(.system(size: 22))
-                        
-                        // BOTÓN
-                        Button(action: {
 
-                            if !usuario.isEmpty {
+            GeometryReader { geo in
 
-                                SQLiteManager.shared.crearUsuario(nombre: usuario)
+                ZStack {
 
-                                SQLiteManager.shared.iniciarSesion(nombre: usuario)
-
-                                irHome = true
-                            }
-
-                        }) {
-                            Text("Crea Cuenta")
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(Color.white.opacity(0.7))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 10) {
-
-                            Text("Cuentas guardadas")
-                                .foregroundColor(.white)
-                                .font(.headline)
-
-                            List {
-
-                                ForEach(usuariosGuardados, id: \.self) { user in
-
-                                    HStack {
-
-                                        Image(systemName: "person.circle.fill")
-
-                                        Text(user)
-
-                                        Spacer()
-                                    }
-                                    .foregroundColor(.white)
-                                    .padding(.vertical, 8)
-
-                                    .contentShape(Rectangle())
-
-                                    .onTapGesture {
-
-                                        usuario = user
-
-                                        SQLiteManager.shared.iniciarSesion(nombre: user)
-
-                                        listaGastos = SQLiteManager.shared.obtenerGastos()
-
-                                        listaIngresos = SQLiteManager.shared.obtenerIngresos()
-
-                                        irHome = true
-                                    }
-
-                                    .swipeActions(allowsFullSwipe: false) {
-
-                                        Button {
-
-                                            usuarioEditar = user
-                                            nuevoNombre = user
-                                            mostrarEditarUsuario = true
-
-                                        } label: {
-
-                                            Label("Editar", systemImage: "pencil")
-                                        }
-                                        .tint(.yellow)
-
-                                        Button(role: .destructive) {
-
-                                            usuarioEliminar = user
-                                            mostrarEliminarUsuario = true
-
-                                        } label: {
-
-                                            Label("Eliminar", systemImage: "trash")
-                                        }
-                                    }
-
-                                    .listRowBackground(
-                                        Color.white.opacity(0.15)
-                                    )
-                                }
-                            }
-                            .environment(\.defaultMinListRowHeight, 20)
-                            .scrollContentBackground(.hidden)
-                            .background(Color.clear)
-                            .frame(height: 150)
-                            .cornerRadius(20)
-                            .listStyle(.plain)
-                        }
-                        .padding(.top, 10)
-                    }
-                    .padding(.vertical, 35)
-                    .padding(.horizontal, 25)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color(red: 40/255, green: 42/255, blue: 92/255),
-                                Color(red: 58/255, green: 65/255, blue: 120/255)
-                            ]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 28/255, green: 19/255, blue: 63/255),
+                            Color(red: 101/255, green: 144/255, blue: 157/255)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
-                    .cornerRadius(35)
-                    .padding(.horizontal, 30)
-                    
-                    Spacer()
+                    .ignoresSafeArea()
+
+                    VStack(spacing: 25) {
+
+                        Spacer()
+
+                        // LOGO
+                        Image("icono")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: min(geo.size.width * 0.4, 180),
+                                height: min(geo.size.width * 0.4, 180)
+                            )
+
+                        // TITULO
+                        Text("UniGastos")
+                            .font(.system(size: 35, weight: .bold, design: .serif))
+                            .fontWeight(.heavy)
+                            .foregroundColor(.white)
+                            .tracking(1.5)
+
+                        // TARJETA LOGIN
+                        VStack(spacing: 20) {
+                            
+                            Text("Registro")
+                                .font(.system(size: 28, weight: .bold, design: .serif))
+                                .fontWeight(.heavy)
+                                .foregroundColor(.white)
+                                .tracking(0.75)
+                            
+                            Text("Usuario")
+                                .font(.system(size: 24, weight: .bold, design: .serif))
+                                .fontWeight(.heavy)
+                                .foregroundColor(.white)
+                                .tracking(0.75)
+                            
+                            
+                            // TEXTFIELD
+                            TextField(
+                                "",
+                                text: $usuario,
+                                prompt: Text("Usuario")
+                                    .font(.system(size: 24, weight: .bold, design: .serif))
+                                    .foregroundColor(.gray)
+                            )
+                                .padding()
+                                .frame(height: 65)
+                                .foregroundStyle(Color.black)
+                                .background(Color.white.opacity(0.95))
+                                .cornerRadius(35)
+                                .padding(.horizontal, 10)
+                                .font(.system(size: 22))
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+
+                                .onChange(of: usuario) { _, newValue in
+
+                                    // SOLO LETRAS
+                                    let filtrado = newValue.filter { $0.isLetter }
+
+                                    // MAXIMO 12
+                                    usuario = String(filtrado.prefix(12))
+                                }
+
+                            // BOTÓN
+                            Button(action: {
+
+                                let nombreLimpio = usuario.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                                // VALIDACIONES
+                                if nombreLimpio.count >= 3 {
+
+                                    SQLiteManager.shared.guardarUsuario(nombre: nombreLimpio)
+
+                                    irHome = true
+                                }
+
+                            }) {
+
+                                Text("Crea Cuenta")
+                                    .font(.system(size: 24, weight: .bold, design: .serif))
+                                    .foregroundColor(Color.white.opacity(0.7))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                            }
+                        }
+                        .padding(.vertical, 35)
+                        .padding(.horizontal, 25)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color(red: 40/255, green: 42/255, blue: 92/255),
+                                    Color(red: 58/255, green: 65/255, blue: 120/255)
+                                ]),
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .cornerRadius(35)
+                        .padding(.horizontal, 30)
+
+                        Spacer()
+                    }
+                    .frame(
+                        width: geo.size.width,
+                        height: geo.size.height
+                    )
                 }
             }
             .navigationDestination(isPresented: $irHome) {
-                HomeView(nombre: usuario, ingresos: $listaIngresos, gastos: $listaGastos)
-            }
-            
-            .alert("Eliminar usuario", isPresented: $mostrarEliminarUsuario) {
 
-                Button("Cancelar", role: .cancel) { }
-
-                Button("Eliminar", role: .destructive) {
-
-                    if let user = usuarioEliminar {
-
-                        SQLiteManager.shared.eliminarUsuario(nombre: user)
-
-                        usuariosGuardados = SQLiteManager.shared.obtenerUsuarios()
-                    }
-
-                }
-
-            } message: {
-
-                Text("¿Seguro que deseas eliminar este usuario?")
+                HomeView(
+                    nombre: usuario,
+                    ingresos: $listaIngresos,
+                    gastos: $listaGastos
+                )
             }
 
-            .sheet(isPresented: $mostrarEditarUsuario) {
-
-                NavigationStack {
-
-                    ZStack {
-
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color(red: 28/255, green: 19/255, blue: 63/255),
-                                Color(red: 120/255, green: 170/255, blue: 185/255)
-                            ]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .ignoresSafeArea()
-
-                        VStack(spacing: 25) {
-
-                            Text("Editar Usuario")
-                                .font(.largeTitle)
-                                .bold()
-                                .foregroundColor(.white)
-
-                            TextField(
-                                "",
-                                text: $nuevoNombre,
-                                prompt: Text("Nuevo nombre")
-                                    .foregroundColor(.gray)
-                            )
-                            .foregroundStyle(.black)
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(15)
-                            .padding(.horizontal)
-
-                            Button {
-
-                                if let viejo = usuarioEditar {
-
-                                    SQLiteManager.shared.editarUsuario(
-                                        nombreActual: viejo,
-                                        nuevoNombre: nuevoNombre
-                                    )
-
-                                    usuariosGuardados = SQLiteManager.shared.obtenerUsuarios()
-
-                                    mostrarEditarUsuario = false
-                                }
-
-                            } label: {
-
-                                Text("Actualizar")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .cornerRadius(15)
-                                    .padding(.horizontal)
-                            }
-
-                            Button {
-
-                                mostrarEditarUsuario = false
-
-                            } label: {
-
-                                Text("Cancelar")
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // ON APPEAR AGREGADO
             .onAppear {
 
-                usuariosGuardados = SQLiteManager.shared.obtenerUsuarios()
+                usuario = SQLiteManager.shared.obtenerUsuario()
 
-                usuario = SQLiteManager.shared.obtenerUsuarioActivo()
+                listaGastos = SQLiteManager.shared.obtenerGastos()
+
+                listaIngresos = SQLiteManager.shared.obtenerIngresos()
 
                 if !usuario.isEmpty {
-
-                    listaGastos = SQLiteManager.shared.obtenerGastos()
-
-                    listaIngresos = SQLiteManager.shared.obtenerIngresos()
 
                     irHome = true
                 }
@@ -318,7 +180,6 @@ struct HomeView: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var filtroSeleccionado = "Mes"
-    @State private var refreshID = UUID()
     
     var safeProgress: Double {
         let value = abs(balance)
@@ -353,29 +214,27 @@ struct HomeView: View {
     }
     
     var body: some View {
-        let _ = print("Usuario actual:", nombre)
-        MainLayout(
-            nombre: nombre,
-            ingresos: $ingresos,
-            gastos: $gastos
-        ) {
+        MainLayout(nombre: nombre, ingresos: $ingresos, gastos: $gastos) {
+            
             // TARJETA BALANCE
-            VStack {
-                Text("Saldo Actual:")
-                    .font(.system(size: 38, weight: .bold))
+            VStack(spacing: 8) {
+
+                Text("Saldo Actual")
+                    .font(.system(size: 26, weight: .bold, design: .serif))
                     .foregroundColor(.white)
-                
+
                 Text("$\(String(format: "%.0f", balance))")
-                    .font(.system(size: 34, weight: .bold))
+                    .font(.system(size: 28, weight: .bold, design: .serif))
                     .foregroundColor(.white)
             }
-            .padding(.vertical, 20)
-            .padding(.horizontal, 35)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 28)
             .background(
                 Color(red: 31/255, green: 18/255, blue: 84/255)
             )
-            .cornerRadius(35)
-            .padding(.top, 10)
+            .cornerRadius(25)
+            .padding(.top, 6)
+            .padding(.horizontal, 20)
             
             Spacer().frame(height: 20)
             
@@ -403,16 +262,18 @@ struct HomeView: View {
                         )
                         .foregroundStyle(Color.purple.opacity(0.7))
                     }
-                    .frame(height: 320)
-                    .padding()
+                    .frame(height: 190)
+                    .padding(.top, 10)
                     
                     VStack(spacing: 8) {
                         
                         Text("Ingreso \(String(format: "%.1f", (totalIngresos / total) * 100))%")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .font(.headline)
                         
                         Text("Gastos \(String(format: "%.1f", (totalGastos / total) * 100))%")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .font(.headline)
                     }
@@ -420,6 +281,7 @@ struct HomeView: View {
                 }
                 else {
                     Text("Sin datos")
+                        .font(.system(size: 22, weight: .bold, design: .serif))
                         .foregroundColor(.white.opacity(0.6))
                         .frame(height: 320)
                 }
@@ -465,7 +327,6 @@ struct HomeView: View {
             .padding(.top, 15)
         }
         .navigationBarBackButtonHidden(true)
-        .id(nombre)
     }
 }
 
@@ -479,6 +340,8 @@ struct GastosView: View {
     @State private var mostrarEditar = false
     @State private var mostrarAlertaEliminar = false
     @State private var gastoAEliminar: Gasto?
+    @State private var mostrarMensaje = false
+    @State private var mensaje = ""
     
     var body: some View {
         
@@ -494,6 +357,7 @@ struct GastosView: View {
                 if gastos.isEmpty {
                     
                     Text("Sin datos de gastos")
+                        .font(.system(size: 22, weight: .bold, design: .serif))
                         .foregroundColor(.white.opacity(0.5))
                         .frame(height: 200)
                     
@@ -562,7 +426,7 @@ struct GastosView: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.clear)
-            .frame(height: 300)
+            .frame(maxHeight: 300)
             
             .padding(.horizontal)
             
@@ -572,6 +436,11 @@ struct GastosView: View {
                 
                 AddButton(titulo: "Gasto")
             }
+        }
+        .alert("Éxito", isPresented: $mostrarMensaje) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(mensaje)
         }
         .sheet(isPresented: $mostrarForm) {
             
@@ -587,6 +456,8 @@ struct GastosView: View {
                 )
 
                 gastos = SQLiteManager.shared.obtenerGastos()
+                mensaje = "Gasto agregado correctamente"
+                mostrarMensaje = true
             }
             .navigationBarBackButtonHidden(true)
         }
@@ -612,10 +483,10 @@ struct GastosView: View {
         }
         
         .sheet(item: $gastoEditar) { gasto in
-
-            EditarGastoView(gasto: gasto) {
-
+            EditarGastoView(gasto: gasto) { mensaje in
                 gastos = SQLiteManager.shared.obtenerGastos()
+                self.mensaje = mensaje
+                mostrarMensaje = true
             }
         }
         
@@ -658,7 +529,7 @@ struct FormularioPro: View {
 
                     // TITULO
                     Text(titulo)
-                        .font(.system(size: 34, weight: .bold))
+                        .font(.system(size: 34, weight: .bold, design: .serif))
                         .foregroundColor(.white)
 
                     // TARJETA
@@ -671,28 +542,30 @@ struct FormularioPro: View {
                                 "",
                                 text: $concepto,
                                 prompt: Text("Concepto")
+                                    .font(.system(size: 22, weight: .bold, design: .serif))
                                     .foregroundColor(.gray)
                             )
-                            .foregroundStyle(.black)
-                            .padding()
-                            .background(Color.white.opacity(0.95))
-                            .cornerRadius(18)
-                            .font(.system(size: 20))
+                                .foregroundStyle(.black)
+                                .padding()
+                                .background(Color.white.opacity(0.95))
+                                .cornerRadius(18)
+                                .font(.system(size: 20))
                         }
 
                         // MONTO
                         TextField(
                             "",
                             text: $monto,
-                            prompt: Text("Cantidad")
+                            prompt: Text("$ Monto")
+                                .font(.system(size: 22, weight: .bold, design: .serif))
                                 .foregroundColor(.gray)
                         )
-                        .keyboardType(.decimalPad)
-                        .foregroundColor(.black)
-                        .padding()
-                        .background(Color.white.opacity(0.95))
-                        .cornerRadius(18)
-                        .font(.system(size: 20))
+                            .keyboardType(.decimalPad)
+                            .foregroundColor(.black)
+                            .padding()
+                            .background(Color.white.opacity(0.95))
+                            .cornerRadius(18)
+                            .font(.system(size: 20))
 
                         // BOTON GUARDAR
                         Button {
@@ -713,7 +586,7 @@ struct FormularioPro: View {
                         } label: {
 
                             Text("Guardar")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 22, weight: .bold, design: .serif))
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -729,7 +602,7 @@ struct FormularioPro: View {
                         } label: {
 
                             Text("Cancelar")
-                                .font(.headline)
+                                .font(.system(size: 22, weight: .bold, design: .serif))
                                 .foregroundColor(.white.opacity(0.8))
                         }
                     }
@@ -751,7 +624,7 @@ struct MainLayout<Content: View>: View {
     @Binding var ingresos: [Ingreso]
     @Binding var gastos: [Gasto]
     @State private var vistaActiva: String = "Resumen"
-    @Environment(\.dismiss) var dismiss
+    @State private var mostrarEquipo = false
     
     let content: () -> Content
     
@@ -793,29 +666,19 @@ struct MainLayout<Content: View>: View {
                     Spacer()
                     
                     Button {
-
-                        SQLiteManager.shared.cerrarSesion()
-
-                        ingresos.removeAll()
-                        gastos.removeAll()
-
-                        dismiss()
-
+                        mostrarEquipo = true
                     } label: {
 
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .font(.title)
-                            .foregroundColor(.white)
+                        Image("icono")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 70, height: 70)
+                            .foregroundColor(Color.orange)
                     }
-
-                    Image("icono")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 70, height: 70)
-                        .foregroundColor(Color.orange)
+                        
                 }
                 .padding(.horizontal, 22)
-                .padding(.top, 20)
+                .padding(.top, 0)
                 .padding(.bottom, 18)
                 .background(
                     Color(red: 30/255, green: 15/255, blue: 72/255)
@@ -831,7 +694,7 @@ struct MainLayout<Content: View>: View {
                         VStack(spacing: 6) {
                             
                             Text("Ingresos")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 22, weight: .bold, design: .serif))
                                 .foregroundColor(.white.opacity(
                                     vistaActiva == "Ingresos" ? 1 : 0.7
                                 ))
@@ -854,7 +717,7 @@ struct MainLayout<Content: View>: View {
                         VStack(spacing: 6) {
                             
                             Text("Resumen")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 22, weight: .bold, design: .serif))
                                 .foregroundColor(.white.opacity(
                                     vistaActiva == "Resumen" ? 1 : 0.7
                                 ))
@@ -877,7 +740,7 @@ struct MainLayout<Content: View>: View {
                         VStack(spacing: 6) {
                             
                             Text("Gastos")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 22, weight: .bold, design: .serif))
                                 .foregroundColor(.white.opacity(
                                     vistaActiva == "Gastos" ? 1 : 0.7
                                 ))
@@ -891,17 +754,16 @@ struct MainLayout<Content: View>: View {
                         }
                     }
                 }
+                .ignoresSafeArea(.container, edges: .top)
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 .background(
                     Color(red: 34/255, green: 24/255, blue: 82/255)
                 )
                 
-                ScrollView(showsIndicators: false) {
-                    
-                    VStack {
-                        
-                        switch vistaActiva {
+                VStack {
+
+                    switch vistaActiva {
                             
                         case "Ingresos":
                             
@@ -926,23 +788,35 @@ struct MainLayout<Content: View>: View {
                     }
                     .padding(.bottom, 20)
                 }
+            .frame(maxHeight: .infinity, alignment: .top)
             }
+        .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $mostrarEquipo) {
+
+            EquipoView()
+        }
         }
     }
-}
+
 
 struct BalanceCard: View {
     let monto: String
     var body: some View {
         Text("Ingreso Total: $\(monto)")
-            .font(.largeTitle)
+            .font(.system(size: 35, weight: .bold, design: .serif))
+            .fontWeight(.heavy)
+            .foregroundColor(.white)
+            .tracking(1.5)
     }
 }
 struct BalanceCard2: View {
     let monto: String
     var body: some View {
         Text("Gasto Total: $\(monto)")
-            .font(.largeTitle)
+            .font(.system(size: 35, weight: .bold, design: .serif))
+            .fontWeight(.heavy)
+            .foregroundColor(.white)
+            .tracking(1.5)
     }
 }
 
@@ -956,6 +830,8 @@ struct HistorialRow: View {
             Text(titulo)
             Spacer()
             Text("$\(monto, specifier: "%.0f")")
+                .font(.system(size: 22, weight: .bold, design: .serif))
+
         }
     }
 }
@@ -981,6 +857,7 @@ struct AddButton: View {
     
     var body: some View {
         Text("Añadir \(titulo)")
+            .font(.system(size: 22, weight: .bold, design: .serif))
             .padding()
             .background(Color.blue)
             .foregroundColor(.white)
@@ -1010,6 +887,8 @@ struct IngresosView: View {
     @State private var ingresoEditar: Ingreso?
     @State private var mostrarAlertaEliminar = false
     @State private var ingresoAEliminar: Ingreso?
+    @State private var mostrarMensaje = false
+    @State private var mensaje = ""
     
     var body: some View {
         
@@ -1025,6 +904,7 @@ struct IngresosView: View {
                 if ingresos.isEmpty {
                     
                     Text("Sin datos de ingresos")
+                        .font(.system(size: 22, weight: .bold, design: .serif))
                         .foregroundColor(.white.opacity(0.5))
                         .frame(height: 200)
                     
@@ -1092,7 +972,7 @@ struct IngresosView: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.clear)
-            .frame(height: 300)
+            .frame(maxHeight: 300)
             
             .padding(.horizontal)
             
@@ -1102,6 +982,11 @@ struct IngresosView: View {
                 
                 AddButton(titulo: "Ingreso")
             }
+        }
+        .alert("Éxito", isPresented: $mostrarMensaje) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(mensaje)
         }
         .sheet(isPresented: $mostrarForm) {
             
@@ -1116,6 +1001,8 @@ struct IngresosView: View {
                 )
 
                 ingresos = SQLiteManager.shared.obtenerIngresos()
+                mensaje = "Ingreso agregado correctamente"
+                mostrarMensaje = true
             }
             .navigationBarBackButtonHidden(true)
         }
@@ -1141,20 +1028,21 @@ struct IngresosView: View {
         }
         
         .sheet(item: $ingresoEditar) { ingreso in
-
-            EditarIngresoView(ingreso: ingreso) {
-
+            EditarIngresoView(ingreso: ingreso) { mensaje in
                 ingresos = SQLiteManager.shared.obtenerIngresos()
+                self.mensaje = mensaje
+                mostrarMensaje = true
             }
         }
-    
     }
 }
 
 struct EditarGastoView: View {
 
     var gasto: Gasto
-    var alActualizar: () -> Void
+    var alActualizar: (String) -> Void
+    
+    
 
     @Environment(\.dismiss) var dismiss
 
@@ -1178,7 +1066,7 @@ struct EditarGastoView: View {
                 .ignoresSafeArea()
 
                 VStack(spacing: 25) {
-
+// correcion de titulos y letras
                     Text("Editar Gasto")
                         .font(.largeTitle)
                         .bold()
@@ -1190,23 +1078,23 @@ struct EditarGastoView: View {
                         prompt: Text("Concepto")
                             .foregroundColor(.gray)
                     )
-                    .foregroundStyle(.black)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(15)
-                    .padding(.horizontal)
+                        .foregroundStyle(.black)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(15)
+                        .padding(.horizontal)
 
                     TextField(
                         "",
                         text: $cantidad,
-                        prompt: Text("Cantidad")
+                        prompt: Text("$ Monto")
                             .foregroundColor(.gray)
                     )
-                    .foregroundStyle(.black)
-                    .keyboardType(.decimalPad)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(15)
+                        .foregroundStyle(.black)
+                        .keyboardType(.decimalPad)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(15)
                         .padding(.horizontal)
 
                     Button {
@@ -1219,8 +1107,7 @@ struct EditarGastoView: View {
                                 cantidad: monto
                             )
 
-                            alActualizar()
-
+                            alActualizar("Gasto modificado correctamente")
                             dismiss()
                         }
 
@@ -1259,7 +1146,7 @@ struct EditarGastoView: View {
 struct EditarIngresoView: View {
 
     var ingreso: Ingreso
-    var alActualizar: () -> Void
+    var alActualizar: (String) -> Void
 
     @Environment(\.dismiss) var dismiss
 
@@ -1291,14 +1178,14 @@ struct EditarIngresoView: View {
                     TextField(
                         "",
                         text: $cantidad,
-                        prompt: Text("Cantidad")
+                        prompt: Text("$ Monto")
                             .foregroundColor(.gray)
                     )
-                    .foregroundStyle(.black)
-                    .keyboardType(.decimalPad)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(15)
+                        .foregroundStyle(.black)
+                        .keyboardType(.decimalPad)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(15)
                         .padding(.horizontal)
 
                     Button {
@@ -1310,8 +1197,7 @@ struct EditarIngresoView: View {
                                 cantidad: monto
                             )
 
-                            alActualizar()
-
+                            alActualizar("Ingreso modificado correctamente")
                             dismiss()
                         }
 
@@ -1346,3 +1232,56 @@ struct EditarIngresoView: View {
     }
 }
 
+struct EquipoView: View {
+
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+
+        ZStack {
+
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 28/255, green: 19/255, blue: 63/255),
+                    Color(red: 120/255, green: 170/255, blue: 185/255)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 25) {
+
+                Text("Integrantes del equipo")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+
+                VStack(spacing: 15) {
+
+                    Text("• Jose Adrian Liy García")
+                    Text("• Nelson Enrique Pérez Juan")
+
+                }
+                .font(.system(size: 22))
+                .foregroundColor(.white)
+
+                Button {
+
+                    dismiss()
+
+                } label: {
+
+                    Text("Cerrar")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(15)
+                        .padding(.horizontal, 40)
+                }
+            }
+            .padding()
+        }
+    }
+}
