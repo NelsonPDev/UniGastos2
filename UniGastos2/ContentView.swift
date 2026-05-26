@@ -549,8 +549,7 @@ struct FormularioPro: View {
                                 .padding()
                                 .background(Color.white.opacity(0.95))
                                 .cornerRadius(18)
-                                .font(.system(size: 20))
-                        }
+                                .fuenteUniGastos(size: 20)                        }
 
                         // MONTO
                         TextField(
@@ -565,7 +564,7 @@ struct FormularioPro: View {
                             .padding()
                             .background(Color.white.opacity(0.95))
                             .cornerRadius(18)
-                            .font(.system(size: 20))
+                            .fuenteUniGastos(size: 20)
 
                         // BOTON GUARDAR
                         Button {
@@ -660,7 +659,7 @@ struct MainLayout<Content: View>: View {
                 HStack {
                     
                     Text("Hola, \(nombre)")
-                        .font(.system(size: 34, weight: .bold))
+                        .fuenteUniGastos(size: 34)
                         .foregroundColor(.white)
                     
                     Spacer()
@@ -826,13 +825,20 @@ struct HistorialRow: View {
     let fecha: Date
     
     var body: some View {
+        
         HStack {
+            
             Text(titulo)
+                .fuenteUniGastos(size: 22)
+                .foregroundColor(.white)
+            
             Spacer()
+            
             Text("$\(monto, specifier: "%.0f")")
-                .font(.system(size: 22, weight: .bold, design: .serif))
-
+                .fuenteUniGastos(size: 22)
+                .foregroundColor(.white)
         }
+        .padding(.vertical, 6)
     }
 }
 
@@ -844,6 +850,7 @@ struct FilterButton: View {
     var body: some View {
         Button(action: action) {
             Text(text)
+                .fuenteUniGastos()
                 .padding()
                 .background(activo ? Color.blue : Color.gray)
                 .foregroundColor(.white)
@@ -926,6 +933,7 @@ struct IngresosView: View {
                             y: .value("Monto", item.cantidad)
                         )
                     }
+                    .fuenteUniGastos(size: 10)
                     .frame(height: 200)
                     .padding()
                 }
@@ -981,6 +989,7 @@ struct IngresosView: View {
             }) {
                 
                 AddButton(titulo: "Ingreso")
+                
             }
         }
         .alert("Éxito", isPresented: $mostrarMensaje) {
@@ -1068,7 +1077,7 @@ struct EditarGastoView: View {
                 VStack(spacing: 25) {
 // correcion de titulos y letras
                     Text("Editar Gasto")
-                        .font(.largeTitle)
+                        .font(.system(size: 28, weight: .bold, design: .serif))
                         .bold()
                         .foregroundColor(.white)
 
@@ -1076,6 +1085,7 @@ struct EditarGastoView: View {
                         "",
                         text: $concepto,
                         prompt: Text("Concepto")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.gray)
                     )
                         .foregroundStyle(.black)
@@ -1088,6 +1098,7 @@ struct EditarGastoView: View {
                         "",
                         text: $cantidad,
                         prompt: Text("$ Monto")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.gray)
                     )
                         .foregroundStyle(.black)
@@ -1114,7 +1125,7 @@ struct EditarGastoView: View {
                     } label: {
 
                         Text("Actualizar")
-                            .font(.headline)
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -1130,6 +1141,7 @@ struct EditarGastoView: View {
                     } label: {
 
                         Text("Cancelar")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.white.opacity(0.8))
                     }
                 }
@@ -1171,7 +1183,7 @@ struct EditarIngresoView: View {
                 VStack(spacing: 25) {
 
                     Text("Editar Ingreso")
-                        .font(.largeTitle)
+                        .font(.system(size: 22, weight: .bold, design: .serif))
                         .bold()
                         .foregroundColor(.white)
 
@@ -1179,6 +1191,7 @@ struct EditarIngresoView: View {
                         "",
                         text: $cantidad,
                         prompt: Text("$ Monto")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.gray)
                     )
                         .foregroundStyle(.black)
@@ -1204,7 +1217,7 @@ struct EditarIngresoView: View {
                     } label: {
 
                         Text("Actualizar")
-                            .font(.headline)
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -1220,6 +1233,7 @@ struct EditarIngresoView: View {
                     } label: {
 
                         Text("Cancelar")
+                            .font(.system(size: 22, weight: .bold, design: .serif))
                             .foregroundColor(.white.opacity(0.8))
                     }
                 }
@@ -1253,7 +1267,7 @@ struct EquipoView: View {
             VStack(spacing: 25) {
 
                 Text("Integrantes del equipo")
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.system(size: 32, weight: .bold, design: .serif))
                     .foregroundColor(.white)
 
                 VStack(spacing: 15) {
@@ -1262,7 +1276,7 @@ struct EquipoView: View {
                     Text("• Nelson Enrique Pérez Juan")
 
                 }
-                .font(.system(size: 22))
+                .font(.system(size: 22, weight: .bold, design: .serif))
                 .foregroundColor(.white)
 
                 Button {
@@ -1272,7 +1286,7 @@ struct EquipoView: View {
                 } label: {
 
                     Text("Cerrar")
-                        .font(.headline)
+                        .font(.system(size: 28, weight: .bold, design: .serif))
                         .foregroundColor(.white)
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -1283,5 +1297,18 @@ struct EquipoView: View {
             }
             .padding()
         }
+    }
+}
+extension View {
+
+    func fuenteUniGastos(size: CGFloat = 22) -> some View {
+
+        self.font(
+            .system(
+                size: size,
+                weight: .bold,
+                design: .serif
+            )
+        )
     }
 }
